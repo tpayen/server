@@ -41,6 +41,7 @@ class CapabilitiesTest extends TestCase {
 		$expected = [
 			'dav' => [
 				'chunking' => '1.0',
+				's3-multipart' => true,
 			],
 		];
 		$this->assertSame($expected, $capabilities->getCapabilities());
@@ -56,6 +57,7 @@ class CapabilitiesTest extends TestCase {
 		$expected = [
 			'dav' => [
 				'chunking' => '1.0',
+				's3-multipart' => true,
 				'bulkupload' => '1.0',
 			],
 		];
