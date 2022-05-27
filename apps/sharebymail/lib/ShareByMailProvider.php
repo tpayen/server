@@ -1208,7 +1208,7 @@ class ShareByMailProvider implements IShareProvider {
 		$mail = $cursor->fetch() !== false;
 		$cursor->closeCursor();
 
-		return ['public' => $mail];
+		return ['mail' => $mail];
 	}
 
 	public function getAllShares(): iterable {
