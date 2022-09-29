@@ -268,12 +268,18 @@ class IMipPlugin extends SabreIMipPlugin {
 
 		$message->useTemplate($template);
 
-		$attachment = $this->mailer->createAttachment(
-			$iTipMessage->message->serialize(),
-			'event.ics',// TODO(leon): Make file name unique, e.g. add event id
-			'text/calendar; method=' . $iTipMessage->method
+		/*
+		** We choose to work like Thunderbird Lightning.
+		** using a plain text text/calendar ics.
+		** This plain text text/calendar part is needed for
+		** Microsoft Outlook versions <= 2010 to work.
+		*/
+		$itip_msg = $iTipMessage->message->serialize();
+		$message->attachInline(
+				$itip_msg,
+				'text/calendar; method=' . $iTipMessage->method,
+				'UTF-8'
 		);
-		$message->attach($attachment);
 
 		try {
 			$failed = $this->mailer->send($message);

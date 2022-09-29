@@ -65,6 +65,30 @@ class Message implements IMessage {
 	}
 
 	/**
+	 * Can be used to "attach content inline" as message parts with specific MIME type and encoding.
+	 *
+	 * @param $body: body of the MIME part
+	 * @param $content-type: MIME Content-Type (e.g. text/plain or text/calendar)
+	 * @param $charset: Character Set (e.g. UTF-8)
+	 * @return IMessage
+	 * @since 26.0.0
+	 */
+	public function attachInline(string $body, string $contentType = null, string $charset = null): IMessage {
+		# To be sure this works with iCalendar messages, we encode with 8bit instead of
+		# quoted-printable encoding. We save the current encoder, replace the current
+		# encoder with an 8bit encoder and after we've finished, we reset the encoder
+		# to the previous one. Originally intended to be added after the message body,
+		# as it is curently unknown if all mail clients handle this properly if added
+		# before.
+		$encoder = $this->swiftMessage->getEncoder();
+		$eightbitEncoder = new \Swift_Mime_ContentEncoder_PlainContentEncoder('8bit');
+		$this->swiftMessage->setEncoder($eightbitEncoder);
+		$this->swiftMessage->addPart($body, $contentType, $charset);
+		$this->swiftMessage->setEncoder($encoder);
+		return $this;
+	}
+
+	/**
 	 * SwiftMailer does currently not work with IDN domains, this function therefore converts the domains
 	 * FIXME: Remove this once SwiftMailer supports IDN
 	 *
