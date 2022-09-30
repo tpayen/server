@@ -42,11 +42,11 @@ use Symfony\Component\Mime\Email;
  * @package OC\Mail
  */
 class Message implements IMessage {
-	private Email $swiftMessage;
+	private Email $symfonyEmail;
 	private bool $plainTextOnly;
 
-	public function __construct(Email $swiftMessage, bool $plainTextOnly) {
-		$this->swiftMessage = $swiftMessage;
+	public function __construct(Email $symfonyEmail, bool $plainTextOnly) {
+		$this->symfonyEmail = $symfonyEmail;
 		$this->plainTextOnly = $plainTextOnly;
 	}
 
@@ -57,7 +57,7 @@ class Message implements IMessage {
 	 */
 	public function attach(IAttachment $attachment): IMessage {
 		/** @var Attachment $attachment */
-		$this->swiftMessage->attach($attachment->getSwiftAttachment());
+		$this->symfonyEmail->attach($attachment->getSwiftAttachment());
 		return $this;
 	}
 
@@ -101,7 +101,7 @@ class Message implements IMessage {
 	public function setFrom(array $addresses): IMessage {
 		$addresses = $this->convertAddresses($addresses);
 
-		$this->swiftMessage->from($addresses);
+		$this->symfonyEmail->from($addresses);
 		return $this;
 	}
 
@@ -111,7 +111,7 @@ class Message implements IMessage {
 	 * @return array
 	 */
 	public function getFrom(): array {
-		return $this->swiftMessage->getFrom();
+		return $this->symfonyEmail->getFrom();
 	}
 
 	/**
@@ -123,7 +123,7 @@ class Message implements IMessage {
 	public function setReplyTo(array $addresses): IMessage {
 		$addresses = $this->convertAddresses($addresses);
 
-		$this->swiftMessage->replyTo($addresses);
+		$this->symfonyEmail->replyTo($addresses);
 		return $this;
 	}
 
@@ -131,7 +131,7 @@ class Message implements IMessage {
 	 * Returns the Reply-To address of this message
 	 */
 	public function getReplyTo(): array {
-		return $this->swiftMessage->getReplyTo();
+		return $this->symfonyEmail->getReplyTo();
 	}
 
 	/**
@@ -143,7 +143,7 @@ class Message implements IMessage {
 	public function setTo(array $recipients): IMessage {
 		$recipients = $this->convertAddresses($recipients);
 
-		$this->swiftMessage->to($recipients);
+		$this->symfonyEmail->to($recipients);
 		return $this;
 	}
 
@@ -153,7 +153,7 @@ class Message implements IMessage {
 	 * @return array
 	 */
 	public function getTo(): array {
-		return $this->swiftMessage->getTo() ?? [];
+		return $this->symfonyEmail->getTo() ?? [];
 	}
 
 	/**
@@ -165,7 +165,7 @@ class Message implements IMessage {
 	public function setCc(array $recipients): IMessage {
 		$recipients = $this->convertAddresses($recipients);
 
-		$this->swiftMessage->cc($recipients);
+		$this->symfonyEmail->cc($recipients);
 		return $this;
 	}
 
@@ -175,7 +175,7 @@ class Message implements IMessage {
 	 * @return array
 	 */
 	public function getCc(): array {
-		return $this->swiftMessage->getCc() ?? [];
+		return $this->symfonyEmail->getCc() ?? [];
 	}
 
 	/**
@@ -187,7 +187,7 @@ class Message implements IMessage {
 	public function setBcc(array $recipients): IMessage {
 		$recipients = $this->convertAddresses($recipients);
 
-		$this->swiftMessage->bcc($recipients);
+		$this->symfonyEmail->bcc($recipients);
 		return $this;
 	}
 
@@ -197,7 +197,7 @@ class Message implements IMessage {
 	 * @return array
 	 */
 	public function getBcc(): array {
-		return $this->swiftMessage->getBcc() ?? [];
+		return $this->symfonyEmail->getBcc() ?? [];
 	}
 
 	/**
@@ -207,7 +207,7 @@ class Message implements IMessage {
 	 * @return IMessage
 	 */
 	public function setSubject(string $subject): IMessage {
-		$this->swiftMessage->subject($subject);
+		$this->symfonyEmail->subject($subject);
 		return $this;
 	}
 
@@ -217,7 +217,7 @@ class Message implements IMessage {
 	 * @return string
 	 */
 	public function getSubject(): string {
-		return $this->swiftMessage->getSubject();
+		return $this->symfonyEmail->getSubject();
 	}
 
 	/**
@@ -227,7 +227,7 @@ class Message implements IMessage {
 	 * @return $this
 	 */
 	public function setPlainBody(string $body): IMessage {
-		$this->swiftMessage->text($body);
+		$this->symfonyEmail->text($body);
 		return $this;
 	}
 
@@ -237,7 +237,7 @@ class Message implements IMessage {
 	 * @return string
 	 */
 	public function getPlainBody(): string {
-		return $this->swiftMessage->getTextBody();
+		return $this->symfonyEmail->getTextBody();
 	}
 
 	/**
@@ -248,7 +248,7 @@ class Message implements IMessage {
 	 */
 	public function setHtmlBody($body) {
 		if (!$this->plainTextOnly) {
-			$this->swiftMessage->html($body);
+			$this->symfonyEmail->html($body);
 		}
 		return $this;
 	}
@@ -256,15 +256,15 @@ class Message implements IMessage {
 	/**
 	 * Get's the underlying SwiftMessage
 	 */
-	public function setSwiftMessage(Email $swiftMessage): void {
-		$this->swiftMessage = $swiftMessage;
+	public function setSwiftMessage(Email $symfonyEmail): void {
+		$this->symfonyEmail = $symfonyEmail;
 	}
 
 	/**
 	 * Get's the underlying SwiftMessage
 	 */
 	public function getSwiftMessage(): Email {
-		return $this->swiftMessage;
+		return $this->symfonyEmail;
 	}
 
 	/**
@@ -275,9 +275,9 @@ class Message implements IMessage {
 	public function setBody($body, $contentType) {
 		if (!$this->plainTextOnly || $contentType !== 'text/html') {
 			if ($contentType === 'text/html') {
-				$this->swiftMessage->html($body);
+				$this->symfonyEmail->html($body);
 			} else {
-				$this->swiftMessage->text($body);
+				$this->symfonyEmail->text($body);
 			}
 		}
 		return $this;

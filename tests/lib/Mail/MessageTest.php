@@ -16,7 +16,7 @@ use PHPUnit\Framework\MockObject\MockObject;
 
 class MessageTest extends TestCase {
 	/** @var Email */
-	private $swiftMessage;
+	private $symfonyEmail;
 	/** @var Message */
 	private $message;
 
@@ -45,10 +45,10 @@ class MessageTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		$this->swiftMessage = $this->getMockBuilder(Email::class)
+		$this->symfonyEmail = $this->getMockBuilder(Email::class)
 			->disableOriginalConstructor()->getMock();
 
-		$this->message = new Message($this->swiftMessage, false);
+		$this->message = new Message($this->symfonyEmail, false);
 	}
 
 	/**
@@ -63,7 +63,7 @@ class MessageTest extends TestCase {
 	}
 
 	public function testSetFrom() {
-		$this->swiftMessage
+		$this->symfonyEmail
 			->expects($this->once())
 			->method('from')
 			->with(['lukas@owncloud.com']);
@@ -78,7 +78,7 @@ class MessageTest extends TestCase {
 	 * @param $return
 	 */
 	public function testGetFrom($swiftresult, $return) {
-		$this->swiftMessage
+		$this->symfonyEmail
 			->expects($this->once())
 			->method('getFrom')
 			->willReturn($swiftresult);
@@ -87,7 +87,7 @@ class MessageTest extends TestCase {
 	}
 
 	public function testSetReplyTo() {
-		$this->swiftMessage
+		$this->symfonyEmail
 			->expects($this->once())
 			->method('replyTo')
 			->with(['lukas@owncloud.com']);
@@ -95,7 +95,7 @@ class MessageTest extends TestCase {
 	}
 
 	public function testGetReplyTo() {
-		$this->swiftMessage
+		$this->symfonyEmail
 			->expects($this->once())
 			->method('getReplyTo')
 			->willReturn(['lukas@owncloud.com']);
@@ -104,7 +104,7 @@ class MessageTest extends TestCase {
 	}
 
 	public function testSetTo() {
-		$this->swiftMessage
+		$this->symfonyEmail
 			->expects($this->once())
 			->method('to')
 			->with(['lukas@owncloud.com']);
@@ -115,7 +115,7 @@ class MessageTest extends TestCase {
 	 * @dataProvider  getMailAddressProvider
 	 */
 	public function testGetTo($swiftresult, $return) {
-		$this->swiftMessage
+		$this->symfonyEmail
 			->expects($this->once())
 			->method('getTo')
 			->willReturn($swiftresult);
@@ -124,7 +124,7 @@ class MessageTest extends TestCase {
 	}
 
 	public function testSetCc() {
-		$this->swiftMessage
+		$this->symfonyEmail
 			->expects($this->once())
 			->method('cc')
 			->with(['lukas@owncloud.com']);
@@ -135,7 +135,7 @@ class MessageTest extends TestCase {
 	 * @dataProvider  getMailAddressProvider
 	 */
 	public function testGetCc($swiftresult, $return) {
-		$this->swiftMessage
+		$this->symfonyEmail
 			->expects($this->once())
 			->method('getCc')
 			->willReturn($swiftresult);
@@ -144,7 +144,7 @@ class MessageTest extends TestCase {
 	}
 
 	public function testSetBcc() {
-		$this->swiftMessage
+		$this->symfonyEmail
 			->expects($this->once())
 			->method('bcc')
 			->with(['lukas@owncloud.com']);
@@ -155,7 +155,7 @@ class MessageTest extends TestCase {
 	 * @dataProvider  getMailAddressProvider
 	 */
 	public function testGetBcc($swiftresult, $return) {
-		$this->swiftMessage
+		$this->symfonyEmail
 			->expects($this->once())
 			->method('getBcc')
 			->willReturn($swiftresult);
@@ -164,7 +164,7 @@ class MessageTest extends TestCase {
 	}
 
 	public function testSetSubject() {
-		$this->swiftMessage
+		$this->symfonyEmail
 			->expects($this->once())
 			->method('subject')
 			->with('Fancy Subject');
@@ -173,7 +173,7 @@ class MessageTest extends TestCase {
 	}
 
 	public function testGetSubject() {
-		$this->swiftMessage
+		$this->symfonyEmail
 			->expects($this->once())
 			->method('getSubject')
 			->willReturn('Fancy Subject');
@@ -182,7 +182,7 @@ class MessageTest extends TestCase {
 	}
 
 	public function testSetPlainBody() {
-		$this->swiftMessage
+		$this->symfonyEmail
 			->expects($this->once())
 			->method('text')
 			->with('Fancy Body');
@@ -191,7 +191,7 @@ class MessageTest extends TestCase {
 	}
 
 	public function testGetPlainBody() {
-		$this->swiftMessage
+		$this->symfonyEmail
 			->expects($this->once())
 			->method('getTextBody')
 			->willReturn('Fancy Body');
@@ -200,7 +200,7 @@ class MessageTest extends TestCase {
 	}
 
 	public function testSetHtmlBody() {
-		$this->swiftMessage
+		$this->symfonyEmail
 			->expects($this->once())
 			->method('html')
 			->with('<blink>Fancy Body</blink>', 'utf-8');
@@ -209,14 +209,14 @@ class MessageTest extends TestCase {
 	}
 
 	public function testPlainTextRenderOption() {
-		/** @var MockObject|Email $swiftMessage */
-		$swiftMessage = $this->getMockBuilder(Email::class)
+		/** @var MockObject|Email $symfonyEmail */
+		$symfonyEmail = $this->getMockBuilder(Email::class)
 			->disableOriginalConstructor()->getMock();
 		/** @var MockObject|IEMailTemplate $template */
 		$template = $this->getMockBuilder(IEMailTemplate::class)
 			->disableOriginalConstructor()->getMock();
 
-		$message = new Message($swiftMessage, true);
+		$message = new Message($symfonyEmail, true);
 
 		$template
 			->expects($this->never())
@@ -232,14 +232,14 @@ class MessageTest extends TestCase {
 	}
 
 	public function testBothRenderingOptions() {
-		/** @var MockObject|Email $swiftMessage */
-		$swiftMessage = $this->getMockBuilder(Email::class)
+		/** @var MockObject|Email $symfonyEmail */
+		$symfonyEmail = $this->getMockBuilder(Email::class)
 			->disableOriginalConstructor()->getMock();
 		/** @var MockObject|IEMailTemplate $template */
 		$template = $this->getMockBuilder(IEMailTemplate::class)
 			->disableOriginalConstructor()->getMock();
 
-		$message = new Message($swiftMessage, false);
+		$message = new Message($symfonyEmail, false);
 
 		$template
 			->expects($this->once())
