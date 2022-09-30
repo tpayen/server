@@ -34,6 +34,7 @@ namespace OC\Mail;
 use OCP\Mail\IAttachment;
 use OCP\Mail\IEMailTemplate;
 use OCP\Mail\IMessage;
+use Symfony\Component\Mime\Email;
 
 /**
  * Class Message provides a wrapper around SwiftMail
@@ -41,12 +42,10 @@ use OCP\Mail\IMessage;
  * @package OC\Mail
  */
 class Message implements IMessage {
-	/** @var \Symfony\Component\Mime\Email */
-	private $swiftMessage;
-	/** @var bool */
-	private $plainTextOnly;
+	private Email $swiftMessage;
+	private bool $plainTextOnly;
 
-	public function __construct(\Symfony\Component\Mime\Email $swiftMessage, bool $plainTextOnly) {
+	public function __construct(Email $swiftMessage, bool $plainTextOnly) {
 		$this->swiftMessage = $swiftMessage;
 		$this->plainTextOnly = $plainTextOnly;
 	}
@@ -102,7 +101,7 @@ class Message implements IMessage {
 	public function setFrom(array $addresses): IMessage {
 		$addresses = $this->convertAddresses($addresses);
 
-		$this->swiftMessage->setFrom($addresses);
+		$this->swiftMessage->from($addresses);
 		return $this;
 	}
 
@@ -112,7 +111,7 @@ class Message implements IMessage {
 	 * @return array
 	 */
 	public function getFrom(): array {
-		return $this->swiftMessage->getFrom() ?? [];
+		return $this->swiftMessage->getFrom();
 	}
 
 	/**
@@ -124,16 +123,14 @@ class Message implements IMessage {
 	public function setReplyTo(array $addresses): IMessage {
 		$addresses = $this->convertAddresses($addresses);
 
-		$this->swiftMessage->setReplyTo($addresses);
+		$this->swiftMessage->replyTo($addresses);
 		return $this;
 	}
 
 	/**
 	 * Returns the Reply-To address of this message
-	 *
-	 * @return string
 	 */
-	public function getReplyTo(): string {
+	public function getReplyTo(): array {
 		return $this->swiftMessage->getReplyTo();
 	}
 
@@ -146,7 +143,7 @@ class Message implements IMessage {
 	public function setTo(array $recipients): IMessage {
 		$recipients = $this->convertAddresses($recipients);
 
-		$this->swiftMessage->setTo($recipients);
+		$this->swiftMessage->to($recipients);
 		return $this;
 	}
 
@@ -168,7 +165,7 @@ class Message implements IMessage {
 	public function setCc(array $recipients): IMessage {
 		$recipients = $this->convertAddresses($recipients);
 
-		$this->swiftMessage->setCc($recipients);
+		$this->swiftMessage->cc($recipients);
 		return $this;
 	}
 
@@ -190,7 +187,7 @@ class Message implements IMessage {
 	public function setBcc(array $recipients): IMessage {
 		$recipients = $this->convertAddresses($recipients);
 
-		$this->swiftMessage->setBcc($recipients);
+		$this->swiftMessage->bcc($recipients);
 		return $this;
 	}
 
@@ -210,7 +207,7 @@ class Message implements IMessage {
 	 * @return IMessage
 	 */
 	public function setSubject(string $subject): IMessage {
-		$this->swiftMessage->setSubject($subject);
+		$this->swiftMessage->subject($subject);
 		return $this;
 	}
 
@@ -230,7 +227,7 @@ class Message implements IMessage {
 	 * @return $this
 	 */
 	public function setPlainBody(string $body): IMessage {
-		$this->swiftMessage->setBody($body);
+		$this->swiftMessage->text($body);
 		return $this;
 	}
 
@@ -240,7 +237,7 @@ class Message implements IMessage {
 	 * @return string
 	 */
 	public function getPlainBody(): string {
-		return $this->swiftMessage->getBody();
+		return $this->swiftMessage->getTextBody();
 	}
 
 	/**
@@ -251,24 +248,22 @@ class Message implements IMessage {
 	 */
 	public function setHtmlBody($body) {
 		if (!$this->plainTextOnly) {
-			$this->swiftMessage->addPart($body, 'text/html');
+			$this->swiftMessage->html($body);
 		}
 		return $this;
 	}
 
 	/**
 	 * Get's the underlying SwiftMessage
-	 * @param \Symfony\Component\Mime\Email $swiftMessage
 	 */
-	public function setSwiftMessage(\Symfony\Component\Mime\Email $swiftMessage): void {
+	public function setSwiftMessage(Email $swiftMessage): void {
 		$this->swiftMessage = $swiftMessage;
 	}
 
 	/**
 	 * Get's the underlying SwiftMessage
-	 * @return \Symfony\Component\Mime\Email
 	 */
-	public function getSwiftMessage(): \Symfony\Component\Mime\Email {
+	public function getSwiftMessage(): Email {
 		return $this->swiftMessage;
 	}
 
@@ -279,7 +274,11 @@ class Message implements IMessage {
 	 */
 	public function setBody($body, $contentType) {
 		if (!$this->plainTextOnly || $contentType !== 'text/html') {
-			$this->swiftMessage->setBody($body, $contentType);
+			if ($contentType === 'text/html') {
+				$this->swiftMessage->html($body);
+			} else {
+				$this->swiftMessage->text($body);
+			}
 		}
 		return $this;
 	}

@@ -10,11 +10,12 @@ namespace Test\Mail;
 
 use OC\Mail\Message;
 use OCP\Mail\IEMailTemplate;
-use Swift_Message;
+use Symfony\Component\Mime\Email;
 use Test\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class MessageTest extends TestCase {
-	/** @var Swift_Message */
+	/** @var Email */
 	private $swiftMessage;
 	/** @var Message */
 	private $message;
@@ -36,7 +37,7 @@ class MessageTest extends TestCase {
 	 */
 	public function getMailAddressProvider() {
 		return [
-			[null, []],
+			[[], []],
 			[['lukas@owncloud.com' => 'Lukas Reschke'], ['lukas@owncloud.com' => 'Lukas Reschke']],
 		];
 	}
@@ -44,7 +45,7 @@ class MessageTest extends TestCase {
 	protected function setUp(): void {
 		parent::setUp();
 
-		$this->swiftMessage = $this->getMockBuilder('\Swift_Message')
+		$this->swiftMessage = $this->getMockBuilder(Email::class)
 			->disableOriginalConstructor()->getMock();
 
 		$this->message = new Message($this->swiftMessage, false);
@@ -64,7 +65,7 @@ class MessageTest extends TestCase {
 	public function testSetFrom() {
 		$this->swiftMessage
 			->expects($this->once())
-			->method('setFrom')
+			->method('from')
 			->with(['lukas@owncloud.com']);
 		$this->message->setFrom(['lukas@owncloud.com']);
 	}
@@ -88,7 +89,7 @@ class MessageTest extends TestCase {
 	public function testSetReplyTo() {
 		$this->swiftMessage
 			->expects($this->once())
-			->method('setReplyTo')
+			->method('replyTo')
 			->with(['lukas@owncloud.com']);
 		$this->message->setReplyTo(['lukas@owncloud.com']);
 	}
@@ -97,15 +98,15 @@ class MessageTest extends TestCase {
 		$this->swiftMessage
 			->expects($this->once())
 			->method('getReplyTo')
-			->willReturn('lukas@owncloud.com');
+			->willReturn(['lukas@owncloud.com']);
 
-		$this->assertSame('lukas@owncloud.com', $this->message->getReplyTo());
+		$this->assertSame(['lukas@owncloud.com'], $this->message->getReplyTo());
 	}
 
 	public function testSetTo() {
 		$this->swiftMessage
 			->expects($this->once())
-			->method('setTo')
+			->method('to')
 			->with(['lukas@owncloud.com']);
 		$this->message->setTo(['lukas@owncloud.com']);
 	}
@@ -125,7 +126,7 @@ class MessageTest extends TestCase {
 	public function testSetCc() {
 		$this->swiftMessage
 			->expects($this->once())
-			->method('setCc')
+			->method('cc')
 			->with(['lukas@owncloud.com']);
 		$this->message->setCc(['lukas@owncloud.com']);
 	}
@@ -145,7 +146,7 @@ class MessageTest extends TestCase {
 	public function testSetBcc() {
 		$this->swiftMessage
 			->expects($this->once())
-			->method('setBcc')
+			->method('bcc')
 			->with(['lukas@owncloud.com']);
 		$this->message->setBcc(['lukas@owncloud.com']);
 	}
@@ -165,7 +166,7 @@ class MessageTest extends TestCase {
 	public function testSetSubject() {
 		$this->swiftMessage
 			->expects($this->once())
-			->method('setSubject')
+			->method('subject')
 			->with('Fancy Subject');
 
 		$this->message->setSubject('Fancy Subject');
@@ -183,7 +184,7 @@ class MessageTest extends TestCase {
 	public function testSetPlainBody() {
 		$this->swiftMessage
 			->expects($this->once())
-			->method('setBody')
+			->method('text')
 			->with('Fancy Body');
 
 		$this->message->setPlainBody('Fancy Body');
@@ -192,7 +193,7 @@ class MessageTest extends TestCase {
 	public function testGetPlainBody() {
 		$this->swiftMessage
 			->expects($this->once())
-			->method('getBody')
+			->method('getTextBody')
 			->willReturn('Fancy Body');
 
 		$this->assertSame('Fancy Body', $this->message->getPlainBody());
@@ -201,18 +202,18 @@ class MessageTest extends TestCase {
 	public function testSetHtmlBody() {
 		$this->swiftMessage
 			->expects($this->once())
-			->method('addPart')
-			->with('<blink>Fancy Body</blink>', 'text/html');
+			->method('html')
+			->with('<blink>Fancy Body</blink>', 'utf-8');
 
 		$this->message->setHtmlBody('<blink>Fancy Body</blink>');
 	}
 
 	public function testPlainTextRenderOption() {
-		/** @var \PHPUnit\Framework\MockObject\MockObject|Swift_Message $swiftMessage */
-		$swiftMessage = $this->getMockBuilder('\Swift_Message')
+		/** @var MockObject|Email $swiftMessage */
+		$swiftMessage = $this->getMockBuilder(Email::class)
 			->disableOriginalConstructor()->getMock();
-		/** @var \PHPUnit\Framework\MockObject\MockObject|IEMailTemplate $template */
-		$template = $this->getMockBuilder('\OCP\Mail\IEMailTemplate')
+		/** @var MockObject|IEMailTemplate $template */
+		$template = $this->getMockBuilder(IEMailTemplate::class)
 			->disableOriginalConstructor()->getMock();
 
 		$message = new Message($swiftMessage, true);
@@ -231,11 +232,11 @@ class MessageTest extends TestCase {
 	}
 
 	public function testBothRenderingOptions() {
-		/** @var \PHPUnit\Framework\MockObject\MockObject|Swift_Message $swiftMessage */
-		$swiftMessage = $this->getMockBuilder('\Swift_Message')
+		/** @var MockObject|Email $swiftMessage */
+		$swiftMessage = $this->getMockBuilder(Email::class)
 			->disableOriginalConstructor()->getMock();
-		/** @var \PHPUnit\Framework\MockObject\MockObject|IEMailTemplate $template */
-		$template = $this->getMockBuilder('\OCP\Mail\IEMailTemplate')
+		/** @var MockObject|IEMailTemplate $template */
+		$template = $this->getMockBuilder(IEMailTemplate::class)
 			->disableOriginalConstructor()->getMock();
 
 		$message = new Message($swiftMessage, false);
