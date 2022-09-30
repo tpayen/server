@@ -192,7 +192,8 @@ class Mailer implements IMailer {
 
 		$this->dispatcher->dispatchTyped(new BeforeMessageSent($message));
 
-		$mailer->send($message->getSymfonyEmail(), $failedRecipients);
+		$mailer->send($message->getSymfonyEmail());
+		// TODO $failedRecipients ?
 
 		// Debugging logging
 		$logMessage = sprintf('Sent mail to "%s" with subject "%s"', print_r($message->getTo(), true), $message->getSubject());

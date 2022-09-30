@@ -158,11 +158,7 @@ class MailerTest extends TestCase {
 			->method('dispatchTyped')
 			->with($this->equalTo($event));
 
-		# We do not care at this point about errors in Swiftmailer
-		try {
-			$this->mailer->send($message);
-		} catch (Swift_SwiftException $e) {
-		}
+		$this->mailer->send($message);
 	}
 
 	public function testCreateMessage() {
