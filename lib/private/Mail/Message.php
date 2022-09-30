@@ -254,16 +254,16 @@ class Message implements IMessage {
 	}
 
 	/**
-	 * Get's the underlying SwiftMessage
+	 * Set the underlying Email intance
 	 */
-	public function setSwiftMessage(Email $symfonyEmail): void {
+	public function setSymfonyEmail(Email $symfonyEmail): void {
 		$this->symfonyEmail = $symfonyEmail;
 	}
 
 	/**
-	 * Get's the underlying SwiftMessage
+	 * Get the underlying Email intance
 	 */
-	public function getSwiftMessage(): Email {
+	public function getSymfonyEmail(): Email {
 		return $this->symfonyEmail;
 	}
 

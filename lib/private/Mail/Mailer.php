@@ -50,6 +50,11 @@ use OCP\Mail\IEMailTemplate;
 use OCP\Mail\IMailer;
 use OCP\Mail\IMessage;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Mailer\MailerInterface;
+use Symfony\Component\Mailer\Mailer as SymfonyMailer;
+use Symfony\Component\Mime\Email;
+use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
+use Symfony\Component\Mailer\Transport\SendmailTransport;
 
 /**
  * Class Mailer provides some basic functions to create a mail message that can be used in combination with
@@ -70,8 +75,7 @@ use Psr\Log\LoggerInterface;
  * @package OC\Mail
  */
 class Mailer implements IMailer {
-	/** @var \Symfony\Component\Mailer\MailerInterface Cached mailer */
-	private $instance = null;
+	private ?MailerInterface $instance = null;
 	private IConfig $config;
 	private LoggerInterface $logger;
 	/** @var Defaults */
@@ -104,7 +108,7 @@ class Mailer implements IMailer {
 	 */
 	public function createMessage(): IMessage {
 		$plainTextOnly = $this->config->getSystemValue('mail_send_plaintext_only', false);
-		return new Message(new \Symfony\Component\Mime\Email(), $plainTextOnly);
+		return new Message(new Email(), $plainTextOnly);
 	}
 
 	/**
@@ -188,7 +192,7 @@ class Mailer implements IMailer {
 
 		$this->dispatcher->dispatchTyped(new BeforeMessageSent($message));
 
-		$mailer->send($message->getSwiftMessage(), $failedRecipients);
+		$mailer->send($message->getSymfonyEmail(), $failedRecipients);
 
 		// Debugging logging
 		$logMessage = sprintf('Sent mail to "%s" with subject "%s"', print_r($message->getTo(), true), $message->getSubject());
@@ -238,7 +242,7 @@ class Mailer implements IMailer {
 		return $name.'@'.$domain;
 	}
 
-	protected function getInstance(): \Symfony\Component\Mailer\MailerInterface {
+	protected function getInstance(): MailerInterface {
 		if (!is_null($this->instance)) {
 			return $this->instance;
 		}
@@ -255,19 +259,20 @@ class Mailer implements IMailer {
 				break;
 		}
 
-		return new \Symfony\Component\Mailer\MailerInterface($transport);
+		return new SymfonyMailer($transport);
 	}
 
 	/**
 	 * Returns the SMTP transport
 	 *
-	 * @return \Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport
+	 * @return EsmtpTransport
 	 */
-	protected function getSmtpInstance(): \Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport {
-		$transport = new \Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport();
-		$transport->setTimeout($this->config->getSystemValue('mail_smtptimeout', 10));
-		$transport->setHost($this->config->getSystemValue('mail_smtphost', '127.0.0.1'));
-		$transport->setPort($this->config->getSystemValue('mail_smtpport', 25));
+	protected function getSmtpInstance(): EsmtpTransport {
+		$transport = new EsmtpTransport(
+			$this->config->getSystemValue('mail_smtphost', '127.0.0.1'),
+			$this->config->getSystemValue('mail_smtpport', 25)
+		);
+		// TODO $transport->setTimeout($this->config->getSystemValue('mail_smtptimeout', 10));
 		if ($this->config->getSystemValue('mail_smtpauth', false)) {
 			$transport->setUsername($this->config->getSystemValue('mail_smtpname', ''));
 			$transport->setPassword($this->config->getSystemValue('mail_smtppassword', ''));
@@ -297,9 +302,9 @@ class Mailer implements IMailer {
 	/**
 	 * Returns the sendmail transport
 	 *
-	 * @return \Symfony\Component\Mailer\Transport\SendmailTransport
+	 * @return SendmailTransport
 	 */
-	protected function getSendMailInstance(): \Symfony\Component\Mailer\Transport\SendmailTransport {
+	protected function getSendMailInstance(): SendmailTransport {
 		switch ($this->config->getSystemValue('mail_smtpmode', 'smtp')) {
 			case 'qmail':
 				$binaryPath = '/var/qmail/bin/sendmail';
@@ -322,6 +327,6 @@ class Mailer implements IMailer {
 				break;
 		}
 
-		return new \Symfony\Component\Mailer\Transport\SendmailTransport($binaryPath . $binaryParam);
+		return new SendmailTransport($binaryPath . $binaryParam);
 	}
 }
