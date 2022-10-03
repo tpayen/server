@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 #
-# ownCloud
+# Nextcloud
 #
 # @author Vincent Petry
 # @author Morris Jobke
@@ -10,6 +10,7 @@
 # @author Joas Schilling
 # @author Lukas Reschke
 # @author Jörn Friedrich Dreyer
+# @author Anna Larch
 # @copyright 2012-2015 Thomas Müller thomas.mueller@tmit.eu
 #
 
@@ -56,7 +57,7 @@ else
 fi
 
 if ! [ -x "$PHPUNIT" ]; then
-	echo "phpunit executable not found, please install phpunit version >= 6.5" >&2
+	echo "phpunit executable not found, please install phpunit version >= 9.5" >&2
 	exit 3
 fi
 
@@ -71,8 +72,8 @@ PHPUNIT_VERSION=$($PHPUNIT --version | cut -d" " -f2)
 PHPUNIT_MAJOR_VERSION=$(echo "$PHPUNIT_VERSION" | cut -d"." -f1)
 PHPUNIT_MINOR_VERSION=$(echo "$PHPUNIT_VERSION" | cut -d"." -f2)
 
-if ! [ "$PHPUNIT_MAJOR_VERSION" -gt 6 -o \( "$PHPUNIT_MAJOR_VERSION" -eq 6 -a "$PHPUNIT_MINOR_VERSION" -ge 5 \) ]; then
-	echo "phpunit version >= 6.5 required. Version found: $PHPUNIT_VERSION" >&2
+if ! [ "$PHPUNIT_MAJOR_VERSION" -gt 9 -o \( "$PHPUNIT_MAJOR_VERSION" -eq 9 -a "$PHPUNIT_MINOR_VERSION" -ge 5 \) ]; then
+	echo "phpunit version >= 9.5 required. Version found: $PHPUNIT_VERSION" >&2
 	exit 4
 fi
 
