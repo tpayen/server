@@ -150,6 +150,20 @@ class MailerTest extends TestCase {
 				['mail_smtphost', '127.0.0.1', '127.0.0.1'],
 				['mail_smtpport', 25, 25],
 			]);
+		$this->mailer = $this->getMockBuilder(Mailer::class)
+			->setMethods(['getInstance'])
+			->setConstructorArgs(
+				[
+					$this->config,
+					$this->logger,
+					$this->defaults,
+					$this->urlGenerator,
+					$this->l10n,
+					$this->dispatcher,
+					$this->createMock(IFactory::class)
+				]
+			)
+			->getMock();
 
 		$message = $this->createMock(Message::class);
 
@@ -172,6 +186,12 @@ class MailerTest extends TestCase {
 
 
 	public function testSendInvalidMailException() {
+		$this->config
+			->method('getSystemValue')
+			->willReturnMap([
+				['mail_smtphost', '127.0.0.1', '127.0.0.1'],
+				['mail_smtpport', 25, 25],
+			]);
 		$this->expectException(\Exception::class);
 
 		$message = $this->getMockBuilder('\OC\Mail\Message')
