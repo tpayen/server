@@ -51,13 +51,12 @@ class Message implements IMessage {
 	}
 
 	/**
-	 * @param IAttachment $attachment
 	 * @return $this
 	 * @since 13.0.0
 	 */
 	public function attach(IAttachment $attachment): IMessage {
 		/** @var Attachment $attachment */
-		$this->symfonyEmail->attach($attachment->getSwiftAttachment());
+		$attachment->attach($this->symfonyEmail);
 		return $this;
 	}
 
@@ -101,14 +100,12 @@ class Message implements IMessage {
 	public function setFrom(array $addresses): IMessage {
 		$addresses = $this->convertAddresses($addresses);
 
-		$this->symfonyEmail->from($addresses);
+		$this->symfonyEmail->from(...$addresses);
 		return $this;
 	}
 
 	/**
 	 * Get the from address of this message.
-	 *
-	 * @return array
 	 */
 	public function getFrom(): array {
 		return $this->symfonyEmail->getFrom();
@@ -117,13 +114,12 @@ class Message implements IMessage {
 	/**
 	 * Set the Reply-To address of this message
 	 *
-	 * @param array $addresses
 	 * @return $this
 	 */
 	public function setReplyTo(array $addresses): IMessage {
 		$addresses = $this->convertAddresses($addresses);
 
-		$this->symfonyEmail->replyTo($addresses);
+		$this->symfonyEmail->replyTo(...$addresses);
 		return $this;
 	}
 
@@ -143,17 +139,15 @@ class Message implements IMessage {
 	public function setTo(array $recipients): IMessage {
 		$recipients = $this->convertAddresses($recipients);
 
-		$this->symfonyEmail->to($recipients);
+		$this->symfonyEmail->to(...$recipients);
 		return $this;
 	}
 
 	/**
 	 * Get the to address of this message.
-	 *
-	 * @return array
 	 */
 	public function getTo(): array {
-		return $this->symfonyEmail->getTo() ?? [];
+		return $this->symfonyEmail->getTo();
 	}
 
 	/**
@@ -165,17 +159,15 @@ class Message implements IMessage {
 	public function setCc(array $recipients): IMessage {
 		$recipients = $this->convertAddresses($recipients);
 
-		$this->symfonyEmail->cc($recipients);
+		$this->symfonyEmail->cc(...$recipients);
 		return $this;
 	}
 
 	/**
 	 * Get the cc address of this message.
-	 *
-	 * @return array
 	 */
 	public function getCc(): array {
-		return $this->symfonyEmail->getCc() ?? [];
+		return $this->symfonyEmail->getCc();
 	}
 
 	/**
@@ -187,24 +179,21 @@ class Message implements IMessage {
 	public function setBcc(array $recipients): IMessage {
 		$recipients = $this->convertAddresses($recipients);
 
-		$this->symfonyEmail->bcc($recipients);
+		$this->symfonyEmail->bcc(...$recipients);
 		return $this;
 	}
 
 	/**
 	 * Get the Bcc address of this message.
-	 *
-	 * @return array
 	 */
 	public function getBcc(): array {
-		return $this->symfonyEmail->getBcc() ?? [];
+		return $this->symfonyEmail->getBcc();
 	}
 
 	/**
 	 * Set the subject of this message.
 	 *
-	 * @param string $subject
-	 * @return IMessage
+	 * @return $this
 	 */
 	public function setSubject(string $subject): IMessage {
 		$this->symfonyEmail->subject($subject);
@@ -213,17 +202,13 @@ class Message implements IMessage {
 
 	/**
 	 * Get the from subject of this message.
-	 *
-	 * @return string
 	 */
 	public function getSubject(): string {
-		return $this->symfonyEmail->getSubject();
+		return $this->symfonyEmail->getSubject() ?? '';
 	}
 
 	/**
 	 * Set the plain-text body of this message.
-	 *
-	 * @param string $body
 	 * @return $this
 	 */
 	public function setPlainBody(string $body): IMessage {
@@ -233,20 +218,18 @@ class Message implements IMessage {
 
 	/**
 	 * Get the plain body of this message.
-	 *
-	 * @return string
 	 */
 	public function getPlainBody(): string {
-		return $this->symfonyEmail->getTextBody();
+		/** @var string $body */
+		$body = $this->symfonyEmail->getTextBody() ?? '';
+		return $body;
 	}
 
 	/**
 	 * Set the HTML body of this message. Consider also sending a plain-text body instead of only an HTML one.
-	 *
-	 * @param string $body
 	 * @return $this
 	 */
-	public function setHtmlBody($body) {
+	public function setHtmlBody(string $body): IMessage {
 		if (!$this->plainTextOnly) {
 			$this->symfonyEmail->html($body);
 		}
@@ -268,11 +251,9 @@ class Message implements IMessage {
 	}
 
 	/**
-	 * @param string $body
-	 * @param string $contentType
 	 * @return $this
 	 */
-	public function setBody($body, $contentType) {
+	public function setBody(string $body, string $contentType): IMessage {
 		if (!$this->plainTextOnly || $contentType !== 'text/html') {
 			if ($contentType === 'text/html') {
 				$this->symfonyEmail->html($body);
@@ -284,7 +265,6 @@ class Message implements IMessage {
 	}
 
 	/**
-	 * @param IEMailTemplate $emailTemplate
 	 * @return $this
 	 */
 	public function useTemplate(IEMailTemplate $emailTemplate): IMessage {

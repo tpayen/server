@@ -32,7 +32,6 @@ namespace OCP\Mail;
  * @since 13.0.0
  */
 interface IMessage {
-
 	/**
 	 * @param IAttachment $attachment
 	 * @return IMessage
@@ -50,6 +49,12 @@ interface IMessage {
 	 * @since 13.0.0
 	 */
 	public function setFrom(array $addresses): IMessage;
+
+
+	/**
+	 * Get the from address of this message.
+	 */
+	public function getFrom(): array;
 
 	/**
 	 * Set the Reply-To address of this message
@@ -70,6 +75,11 @@ interface IMessage {
 	public function setTo(array $recipients): IMessage;
 
 	/**
+	 * Get the to addresses of this message.
+	 */
+	public function getTo(): array;
+
+	/**
 	 * Set the CC recipients of this message.
 	 *
 	 * @param array $recipients Example: array('recipient@domain.org', 'other@domain.org' => 'A name')
@@ -86,6 +96,17 @@ interface IMessage {
 	 * @since 13.0.0
 	 */
 	public function setBcc(array $recipients): IMessage;
+
+
+	/**
+	 * Set the subject of this message.
+	 */
+	public function setSubject(string $subject): IMessage;
+
+	/**
+	 * Get the from subject of this message.
+	 */
+	public function getSubject(): string;
 
 	/**
 	 * @param IEMailTemplate $emailTemplate

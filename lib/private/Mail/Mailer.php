@@ -50,6 +50,7 @@ use OCP\Mail\IEMailTemplate;
 use OCP\Mail\IMailer;
 use OCP\Mail\IMessage;
 use Psr\Log\LoggerInterface;
+use Symfony\Component\Mailer\Exception\TransportExceptionInterface;
 use Symfony\Component\Mailer\Mailer as SymfonyMailer;
 use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mailer\Transport\SendmailTransport;
@@ -79,8 +80,7 @@ class Mailer implements IMailer {
 	private ?MailerInterface $instance = null;
 	private IConfig $config;
 	private LoggerInterface $logger;
-	/** @var Defaults */
-	private $defaults;
+	private Defaults $defaults;
 	private IURLGenerator $urlGenerator;
 	private IL10N $l10n;
 	private IEventDispatcher $dispatcher;
@@ -120,7 +120,7 @@ class Mailer implements IMailer {
 	 * @since 13.0.0
 	 */
 	public function createAttachment($data = null, $filename = null, $contentType = null): IAttachment {
-		return new Attachment(new \Swift_Attachment($data, $filename, $contentType));
+		return new Attachment($data, $filename, $contentType);
 	}
 
 	/**
@@ -130,7 +130,7 @@ class Mailer implements IMailer {
 	 * @since 13.0.0
 	 */
 	public function createAttachmentFromPath(string $path, $contentType = null): IAttachment {
-		return new Attachment(\Swift_Attachment::fromPath($path, $contentType));
+		return new Attachment(null, null, $contentType, $path);
 	}
 
 	/**
@@ -180,33 +180,23 @@ class Mailer implements IMailer {
 			$message->setFrom([\OCP\Util::getDefaultEmailAddress('no-reply') => $this->defaults->getName()]);
 		}
 
-		$failedRecipients = [];
-
 		$mailer = $this->getInstance();
-
-		// Enable logger if debug mode is enabled
-		if ($debugMode) {
-			$mailLogger = new \Swift_Plugins_Loggers_ArrayLogger();
-			$mailer->registerPlugin(new \Swift_Plugins_LoggerPlugin($mailLogger));
-		}
-
 
 		$this->dispatcher->dispatchTyped(new BeforeMessageSent($message));
 
-		$mailer->send($message->getSymfonyEmail());
-		// TODO $failedRecipients ?
+		try {
+			$mailer->send($message->getSymfonyEmail());
+		} catch (TransportExceptionInterface $e) {
+			$logMessage = sprintf('Sending mail to "%s" with subject "%s" failed', print_r($message->getTo(), true), $message->getSubject());
+			$this->logger->debug($logMessage, ['app' => 'core', 'exception' => $e]);
+			throw $e;
+		}
 
 		// Debugging logging
 		$logMessage = sprintf('Sent mail to "%s" with subject "%s"', print_r($message->getTo(), true), $message->getSubject());
-		if (!empty($failedRecipients)) {
-			$logMessage .= sprintf(' (failed for "%s")', print_r($failedRecipients, true));
-		}
 		$this->logger->debug($logMessage, ['app' => 'core']);
-		if ($debugMode && isset($mailLogger)) {
-			$this->logger->debug($mailLogger->dump(), ['app' => 'core']);
-		}
 
-		return $failedRecipients;
+		return [];
 	}
 
 	/**
@@ -272,26 +262,27 @@ class Mailer implements IMailer {
 	protected function getSmtpInstance(): EsmtpTransport {
 		$transport = new EsmtpTransport(
 			$this->config->getSystemValue('mail_smtphost', '127.0.0.1'),
-			$this->config->getSystemValue('mail_smtpport', 25)
+			$this->config->getSystemValue('mail_smtpport', 25),
+			null,
+			null,
+			$this->logger
 		);
-		$transport->getStream()->setTimeout($this->config->getSystemValue('mail_smtptimeout', 10));
+		/** @var SocketStream $stream */
+		$stream = $transport->getStream();
+		/** @psalm-suppress InternalMethod */
+		$stream->setTimeout($this->config->getSystemValue('mail_smtptimeout', 10));
 		if ($this->config->getSystemValue('mail_smtpauth', false)) {
 			$transport->setUsername($this->config->getSystemValue('mail_smtpname', ''));
 			$transport->setPassword($this->config->getSystemValue('mail_smtppassword', ''));
-			$transport->setAuthMode($this->config->getSystemValue('mail_smtpauthtype', 'LOGIN'));
-		}
-		$smtpSecurity = $this->config->getSystemValue('mail_smtpsecure', '');
-		if (!empty($smtpSecurity)) {
-			$transport->setEncryption($smtpSecurity);
 		}
 		$streamingOptions = $this->config->getSystemValue('mail_smtpstreamoptions', []);
 		if (is_array($streamingOptions) && !empty($streamingOptions)) {
-			/** @var SocketStream $stream */
-			$stream = $transport->getStream();
+			/** @psalm-suppress InternalMethod */
 			$currentStreamingOptions = $stream->getStreamOptions();
 
 			$currentStreamingOptions = array_merge_recursive($currentStreamingOptions, $streamingOptions);
 
+			/** @psalm-suppress InternalMethod */
 			$stream->setStreamOptions($currentStreamingOptions);
 		}
 
@@ -335,6 +326,6 @@ class Mailer implements IMailer {
 				break;
 		}
 
-		return new SendmailTransport($binaryPath . $binaryParam);
+		return new SendmailTransport($binaryPath . $binaryParam, null, $this->logger);
 	}
 }
