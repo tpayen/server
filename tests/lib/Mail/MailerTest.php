@@ -122,6 +122,7 @@ class MailerTest extends TestCase {
 			->willReturnMap([
 				['mail_smtphost', '127.0.0.1', '127.0.0.1'],
 				['mail_smtpport', 25, 25],
+				['mail_smtptimeout', 10, 10],
 			]);
 		$mailer = self::invokePrivate($this->mailer, 'getInstance');
 		$this->assertInstanceOf(SymfonyMailer::class, $mailer);
@@ -191,6 +192,7 @@ class MailerTest extends TestCase {
 			->willReturnMap([
 				['mail_smtphost', '127.0.0.1', '127.0.0.1'],
 				['mail_smtpport', 25, 25],
+				['mail_smtptimeout', 10, 10],
 			]);
 		$this->expectException(\Exception::class);
 
@@ -240,6 +242,7 @@ class MailerTest extends TestCase {
 				['mail_smtpstreamoptions', [], ['foo' => 1]],
 				['mail_smtphost', '127.0.0.1', '127.0.0.1'],
 				['mail_smtpport', 25, 25],
+				['mail_smtptimeout', 10, 10],
 			]);
 		$mailer = self::invokePrivate($this->mailer, 'getInstance');
 		/** @var EsmtpTransport $transport */
@@ -256,6 +259,7 @@ class MailerTest extends TestCase {
 				['mail_smtpstreamoptions', [], 'bar'],
 				['mail_smtphost', '127.0.0.1', '127.0.0.1'],
 				['mail_smtpport', 25, 25],
+				['mail_smtptimeout', 10, 10],
 			]);
 		$mailer = self::invokePrivate($this->mailer, 'getInstance');
 		/** @var EsmtpTransport $transport */
@@ -270,6 +274,7 @@ class MailerTest extends TestCase {
 				['mail_smtpmode', 'smtp', 'smtp'],
 				['mail_smtphost', '127.0.0.1', '127.0.0.1'],
 				['mail_smtpport', 25, 25],
+				['mail_smtptimeout', 10, 10],
 			]);
 		$this->config->method('getSystemValueString')
 			->with('overwrite.cli.url', '')
@@ -291,6 +296,7 @@ class MailerTest extends TestCase {
 				['mail_smtpmode', 'smtp', 'smtp'],
 				['mail_smtphost', '127.0.0.1', '127.0.0.1'],
 				['mail_smtpport', 25, 25],
+				['mail_smtptimeout', 10, 10],
 			]);
 		$this->config->method('getSystemValueString')
 			->with('overwrite.cli.url', '')

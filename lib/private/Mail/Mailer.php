@@ -274,7 +274,7 @@ class Mailer implements IMailer {
 			$this->config->getSystemValue('mail_smtphost', '127.0.0.1'),
 			$this->config->getSystemValue('mail_smtpport', 25)
 		);
-		// TODO $transport->setTimeout($this->config->getSystemValue('mail_smtptimeout', 10));
+		$transport->getStream()->setTimeout($this->config->getSystemValue('mail_smtptimeout', 10));
 		if ($this->config->getSystemValue('mail_smtpauth', false)) {
 			$transport->setUsername($this->config->getSystemValue('mail_smtpname', ''));
 			$transport->setPassword($this->config->getSystemValue('mail_smtppassword', ''));
