@@ -50,11 +50,12 @@ use OCP\Mail\IEMailTemplate;
 use OCP\Mail\IMailer;
 use OCP\Mail\IMessage;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mailer\Mailer as SymfonyMailer;
-use Symfony\Component\Mime\Email;
-use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
+use Symfony\Component\Mailer\MailerInterface;
 use Symfony\Component\Mailer\Transport\SendmailTransport;
+use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
+use Symfony\Component\Mailer\Transport\Smtp\Stream\SocketStream;
+use Symfony\Component\Mime\Email;
 
 /**
  * Class Mailer provides some basic functions to create a mail message that can be used in combination with
@@ -285,7 +286,13 @@ class Mailer implements IMailer {
 		}
 		$streamingOptions = $this->config->getSystemValue('mail_smtpstreamoptions', []);
 		if (is_array($streamingOptions) && !empty($streamingOptions)) {
-			$transport->setStreamOptions($streamingOptions);
+			/** @var SocketStream $stream */
+			$stream = $transport->getStream();
+			$currentStreamingOptions = $stream->getStreamOptions();
+
+			$currentStreamingOptions = array_merge_recursive($currentStreamingOptions, $streamingOptions);
+
+			$stream->setStreamOptions($currentStreamingOptions);
 		}
 
 		$overwriteCliUrl = parse_url(

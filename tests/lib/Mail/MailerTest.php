@@ -242,8 +242,11 @@ class MailerTest extends TestCase {
 				['mail_smtpport', 25, 25],
 			]);
 		$mailer = self::invokePrivate($this->mailer, 'getInstance');
-		$this->assertEquals(1, count($mailer->getTransport()->getStreamOptions()));
-		$this->assertTrue(isset($mailer->getTransport()->getStreamOptions()['foo']));
+		/** @var EsmtpTransport $transport */
+		$transport = self::invokePrivate($mailer, 'transport');
+		$this->assertInstanceOf(EsmtpTransport::class, $transport);
+		$this->assertEquals(1, count($transport->getStream()->getStreamOptions()));
+		$this->assertTrue(isset($transport->getStream()->getStreamOptions()['foo']));
 	}
 
 	public function testStreamingOptionsWrongType() {
@@ -255,7 +258,10 @@ class MailerTest extends TestCase {
 				['mail_smtpport', 25, 25],
 			]);
 		$mailer = self::invokePrivate($this->mailer, 'getInstance');
-		$this->assertEquals(0, count($mailer->getTransport()->getStreamOptions()));
+		/** @var EsmtpTransport $transport */
+		$transport = self::invokePrivate($mailer, 'transport');
+		$this->assertInstanceOf(EsmtpTransport::class, $transport);
+		$this->assertEquals(0, count($transport->getStream()->getStreamOptions()));
 	}
 
 	public function testLocalDomain(): void {
