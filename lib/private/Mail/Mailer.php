@@ -189,6 +189,9 @@ class Mailer implements IMailer {
 		} catch (TransportExceptionInterface $e) {
 			$logMessage = sprintf('Sending mail to "%s" with subject "%s" failed', print_r($message->getTo(), true), $message->getSubject());
 			$this->logger->debug($logMessage, ['app' => 'core', 'exception' => $e]);
+			if ($debugMode) {
+				$this->logger->debug($e->getDebug(), ['app' => 'core']);
+			}
 			throw $e;
 		}
 
