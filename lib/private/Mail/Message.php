@@ -37,7 +37,7 @@ use OCP\Mail\IMessage;
 use Symfony\Component\Mime\Email;
 
 /**
- * Class Message provides a wrapper around SwiftMail
+ * Class Message provides a wrapper around Symfony\Component\Mime\Email (Used to be around SwiftMail)
  *
  * @package OC\Mail
  */
