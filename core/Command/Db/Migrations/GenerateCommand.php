@@ -73,9 +73,6 @@ use OCP\DB\ISchemaWrapper;
 use OCP\Migration\IOutput;
 use OCP\Migration\SimpleMigrationStep;
 
-/**
- * Auto-generated migration step: Please modify to your needs!
- */
 class {{classname}} extends SimpleMigrationStep {
 
 	/**
@@ -83,7 +80,7 @@ class {{classname}} extends SimpleMigrationStep {
 	 * @param Closure(): ISchemaWrapper $schemaClosure
 	 * @param array $options
 	 */
-	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
+	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options) {
 	}
 
 	/**
@@ -92,16 +89,16 @@ class {{classname}} extends SimpleMigrationStep {
 	 * @param array $options
 	 * @return null|ISchemaWrapper
 	 */
-	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
+	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options) {
 {{schemabody}}
 	}
 
 	/**
 	 * @param IOutput $output
 	 * @param Closure(): ISchemaWrapper $schemaClosure
-g	 * @param array $options
+	 * @param array $options
 	 */
-	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options): void {
+	public function postSchemaChange(IOutput $output, Closure $schemaClosure, array $options) {
 	}
 }
 ';
