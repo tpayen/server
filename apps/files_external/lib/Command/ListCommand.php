@@ -29,6 +29,7 @@ use OC\Core\Command\Base;
 use OC\User\NoUserException;
 use OCA\Files_External\Lib\StorageConfig;
 use OCA\Files_External\Service\GlobalStoragesService;
+use OCA\Files_External\Service\UserGlobalStoragesService;
 use OCA\Files_External\Service\UserStoragesService;
 use OCP\IUserManager;
 use OCP\IUserSession;
@@ -39,32 +40,25 @@ use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Output\OutputInterface;
 
 class ListCommand extends Base {
-	/**
-	 * @var GlobalStoragesService
-	 */
-	protected $globalService;
+	protected GlobalStoragesService $globalService;
+	protected UserStoragesService $userService;
+	protected UserGlobalStoragesService $userGlobalService;
+	protected IUserSession $userSession;
+	protected IUserManager $userManager;
 
-	/**
-	 * @var UserStoragesService
-	 */
-	protected $userService;
+	public const ALL = "__ALL__USERS__";
 
-	/**
-	 * @var IUserSession
-	 */
-	protected $userSession;
-
-	/**
-	 * @var IUserManager
-	 */
-	protected $userManager;
-
-	public const ALL = -1;
-
-	public function __construct(GlobalStoragesService $globalService, UserStoragesService $userService, IUserSession $userSession, IUserManager $userManager) {
+	public function __construct(
+		GlobalStoragesService $globalService,
+		UserStoragesService $userService,
+		UserGlobalStoragesService $userGlobalService,
+		IUserSession $userSession,
+		IUserManager $userManager
+	) {
 		parent::__construct();
 		$this->globalService = $globalService;
 		$this->userService = $userService;
+		$this->userGlobalService = $userGlobalService;
 		$this->userSession = $userSession;
 		$this->userManager = $userManager;
 	}
@@ -92,13 +86,26 @@ class ListCommand extends Base {
 				'a',
 				InputOption::VALUE_NONE,
 				'show both system wide mounts and all personal mounts'
+			)->addOption(
+				'for',
+				null,
+				InputOption::VALUE_REQUIRED,
+				'show only mounts applicable for a specific user'
 			);
 		parent::configure();
 	}
 
 	protected function execute(InputInterface $input, OutputInterface $output): int {
 		/** @var StorageConfig[] $mounts */
-		if ($input->getOption('all')) {
+		if ($for = $input->getOption('for')) {
+			$forUser = $this->userManager->get($for);
+			if (!$forUser) {
+				$output->writeln("<error>User $for not found</error>");
+				return 1;
+			}
+			$mounts = $this->userGlobalService->getAllStoragesForUser($forUser);
+			$userId = self::ALL;
+		} else if ($input->getOption('all')) {
 			$mounts = $this->globalService->getStorageForAllUsers();
 			$userId = self::ALL;
 		} else {
@@ -117,7 +124,7 @@ class ListCommand extends Base {
 	 * @param InputInterface $input
 	 * @param OutputInterface $output
 	 */
-	public function listMounts($userId, array $mounts, InputInterface $input, OutputInterface $output) {
+	public function listMounts(string $userId, array $mounts, InputInterface $input, OutputInterface $output) {
 		$outputType = $input->getOption('output');
 		if (count($mounts) === 0) {
 			if ($outputType === self::OUTPUT_FORMAT_JSON || $outputType === self::OUTPUT_FORMAT_JSON_PRETTY) {
@@ -262,7 +269,7 @@ class ListCommand extends Base {
 		}
 	}
 
-	protected function getStorageService($userId) {
+	protected function getStorageService(string $userId) {
 		if (!empty($userId)) {
 			$user = $this->userManager->get($userId);
 			if (is_null($user)) {
