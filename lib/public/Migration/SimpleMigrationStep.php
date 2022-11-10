@@ -56,21 +56,16 @@ abstract class SimpleMigrationStep implements IMigrationStep {
 	}
 
 	/**
-	 * @param IOutput $output
-	 * @param Closure(): ISchemaWrapper $schemaClosure
-	 * @psalm-param Closure $schemaClosure
-	 * @param array $options
+	 * {@inheritDoc}
+	 *
 	 * @since 13.0.0
 	 */
 	public function preSchemaChange(IOutput $output, Closure $schemaClosure, array $options) {
 	}
 
 	/**
-	 * @param IOutput $output
-	 * @param Closure(): ISchemaWrapper $schemaClosure
-	 * @psalm-param Closure $schemaClosure
-	 * @param array $options
-	 * @return null|ISchemaWrapper
+	 * {@inheritDoc}
+	 *
 	 * @since 13.0.0
 	 */
 	public function changeSchema(IOutput $output, Closure $schemaClosure, array $options): ?ISchemaWrapper {
@@ -78,10 +73,7 @@ abstract class SimpleMigrationStep implements IMigrationStep {
 	}
 
 	/**
-	 * @param IOutput $output
-	 * @param Closure(): ISchemaWrapper $schemaClosure
-	 * @psalm-param Closure $schemaClosure
-	 * @param array $options
+	 * {@inheritDoc}
 	 *
 	 * @since 13.0.0
 	 */
