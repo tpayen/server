@@ -221,6 +221,7 @@ class ChunkingV2Plugin extends ServerPlugin {
 			$updateFileInfo['creation_time'] = $this->sanitizeMtime($this->server->httpRequest->getHeader('X-OC-CTime'));
 			$this->server->httpResponse->setHeader('X-OC-CTime', 'accepted');
 		}
+		$updateFileInfo['mimetype'] = \OC::$server->getMimeTypeDetector()->detectPath($destinationName);
 
 		$rootView = new View();
 		if ($storage->instanceOfStorage(ObjectStoreStorage::class)) {
