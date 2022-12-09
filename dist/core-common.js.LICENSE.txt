@@ -11,12 +11,6 @@
   */
 
 /*!
-  * vue-router v3.5.3
-  * (c) 2021 Evan You
-  * @license MIT
-  */
-
-/*!
  * Cropper.js v1.5.12
  * https://fengyuanchen.github.io/cropperjs
  *
