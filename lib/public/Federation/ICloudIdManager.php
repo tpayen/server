@@ -35,12 +35,13 @@ namespace OCP\Federation;
 interface ICloudIdManager {
 	/**
 	 * @param string $cloudId
+	 * @param bool $isUserHint cloudId is known to refer to a user as hint for validation
 	 * @return ICloudId
 	 * @throws \InvalidArgumentException
 	 *
 	 * @since 12.0.0
 	 */
-	public function resolveCloudId(string $cloudId): ICloudId;
+	public function resolveCloudId(string $cloudId, ?bool $isUserHint = null): ICloudId;
 
 	/**
 	 * Get the cloud id for a remote user

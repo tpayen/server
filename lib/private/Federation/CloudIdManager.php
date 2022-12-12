@@ -95,10 +95,11 @@ class CloudIdManager implements ICloudIdManager {
 
 	/**
 	 * @param string $cloudId
+	 * @param bool $isUserHint
 	 * @return ICloudId
 	 * @throws \InvalidArgumentException
 	 */
-	public function resolveCloudId(string $cloudId): ICloudId {
+	public function resolveCloudId(string $cloudId, ?bool $isUserHint = null): ICloudId {
 		// TODO magic here to get the url and user instead of just splitting on @
 
 		if (!$this->isValidCloudId($cloudId)) {
@@ -107,20 +108,24 @@ class CloudIdManager implements ICloudIdManager {
 
 		// Find the first character that is not allowed in user names
 		$id = $this->fixRemoteURL($cloudId);
-		$posSlash = strpos($id, '/');
-		$posColon = strpos($id, ':');
-
-		if ($posSlash === false && $posColon === false) {
-			$invalidPos = \strlen($id);
-		} elseif ($posSlash === false) {
-			$invalidPos = $posColon;
-		} elseif ($posColon === false) {
-			$invalidPos = $posSlash;
+		if (is_null($isUserHint) || $isUserHint === true) {
+			$posSlash = strpos($id, '/');
+			$posColon = strpos($id, ':');
+	
+			if ($posSlash === false && $posColon === false) {
+				$invalidPos = \strlen($id);
+			} elseif ($posSlash === false) {
+				$invalidPos = $posColon;
+			} elseif ($posColon === false) {
+				$invalidPos = $posSlash;
+			} else {
+				$invalidPos = min($posSlash, $posColon);
+			}
+	
+			$lastValidAtPos = strrpos($id, '@', $invalidPos - strlen($id));
 		} else {
-			$invalidPos = min($posSlash, $posColon);
+			$lastValidAtPos = strrpos($id, '@');
 		}
-
-		$lastValidAtPos = strrpos($id, '@', $invalidPos - strlen($id));
 
 		if ($lastValidAtPos !== false) {
 			$user = substr($id, 0, $lastValidAtPos);
