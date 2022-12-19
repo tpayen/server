@@ -20,9 +20,9 @@ jobs:
         uses: docker://vimeo/psalm-github-actions:4.9.3
         with:
           security_analysis: true
-          composer_ignore_platform_reqs: false
+          composer_ignore_platform_reqs: true
           report_file: results.sarif
       - name: Upload Security Analysis results to GitHub
-        uses: github/codeql-action/upload-sarif@v1
+        uses: github/codeql-action/upload-sarif@v2
         with:
           sarif_file: results.sarif
