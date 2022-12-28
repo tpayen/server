@@ -31,6 +31,7 @@ namespace OC\Files\Cache\Wrapper;
 
 use OC\Files\Cache\Cache;
 use OC\Files\Cache\QuerySearchHelper;
+use OC\Files\Storage\Wrapper\Encryption;
 use OCP\Files\Cache\ICache;
 use OCP\Files\Cache\ICacheEntry;
 use OCP\Files\Search\ISearchOperator;
@@ -54,6 +55,15 @@ class CacheWrapper extends Cache {
 
 	protected function getCache() {
 		return $this->cache;
+	}
+
+	protected function hasEncryptionWrapper(): bool {
+		$cache = $this->getCache();
+		if ($cache instanceof Cache) {
+			return $cache->hasEncryptionWrapper();
+		} else {
+			return false;
+		}
 	}
 
 	/**
