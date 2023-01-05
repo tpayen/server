@@ -61,14 +61,14 @@ class EventComparisonService {
 	private function removeIfUnchanged(VEvent $filterEvent, array &$eventsToFilter): bool {
 		$filterEventData = [];
 		foreach(self::EVENT_DIFF as $eventDiff) {
-			$filterEventData[] = IMipService::readPropertyWithDefault($filterEvent, $eventDiff, null);
+			$filterEventData[] = IMipService::readPropertyWithDefault($filterEvent, $eventDiff, '');
 		}
 
 		/** @var VEvent $component */
 		foreach ($eventsToFilter as $k => $eventToFilter) {
 			$eventToFilterData = [];
 			foreach(self::EVENT_DIFF as $eventDiff) {
-				$eventToFilterData[] = IMipService::readPropertyWithDefault($eventToFilter, $eventDiff, null);
+				$eventToFilterData[] = IMipService::readPropertyWithDefault($eventToFilter, $eventDiff, '');
 			}
 			// events are identical and can be removed
 			if (empty(array_diff($filterEventData, $eventToFilterData))) {

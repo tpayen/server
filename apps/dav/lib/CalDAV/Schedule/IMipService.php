@@ -78,7 +78,7 @@ class IMipService {
 		return $this->l10n->t('%1$s via %2$s', [$senderName, $default]);
 	}
 
-	public static function readPropertyWithDefault(VEvent $vevent, string $property, ?string $default): ?string {
+	public static function readPropertyWithDefault(VEvent $vevent, string $property, string $default) {
 		if (isset($vevent->$property)) {
 			$value = $vevent->$property->getValue();
 			if (!empty($value)) {
@@ -121,7 +121,7 @@ class IMipService {
 			$oldMeetingWhen = $this->generateWhenString($oldVEvent);
 			$data['meeting_title_html']	= $this->generateDiffString($vEvent, $oldVEvent, 'SUMMARY', $data['meeting_title']);
 			$data['meeting_description_html'] = $this->generateDiffString($vEvent, $oldVEvent, 'DESCRIPTION', $data['meeting_description']);
-			$data['meeting_location_html'] = $this->generateDiffString($vEvent, $oldVEvent, 'LOCATION', $data['meetining_location']);
+			$data['meeting_location_html'] = $this->generateDiffString($vEvent, $oldVEvent, 'LOCATION', $data['meeting_location']);
 
 			$oldUrl = self::readPropertyWithDefault($oldVEvent, 'URL', $defaultVal);
 			$data['meeting_url_html'] = isset($oldUrl) ? sprintf('<a href="%1$s">%1$s</a>', $oldUrl) : $data['meeting_url'];
