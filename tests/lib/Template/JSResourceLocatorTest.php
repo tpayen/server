@@ -26,6 +26,7 @@ namespace Test\Template;
 use OC\SystemConfig;
 use OC\Template\JSCombiner;
 use OC\Template\JSResourceLocator;
+use OCP\App\IAppManager;
 use OCP\Files\IAppData;
 use OCP\ICacheFactory;
 use OCP\IURLGenerator;
@@ -42,6 +43,8 @@ class JSResourceLocatorTest extends \Test\TestCase {
 	protected $cacheFactory;
 	/** @var LoggerInterface|\PHPUnit\Framework\MockObject\MockObject */
 	protected $logger;
+	/** @var IAppManager|\PHPUnit\Framework\MockObject\MockObject */
+	protected $appManager;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -51,6 +54,7 @@ class JSResourceLocatorTest extends \Test\TestCase {
 		$this->config = $this->createMock(SystemConfig::class);
 		$this->cacheFactory = $this->createMock(ICacheFactory::class);
 		$this->logger = $this->createMock(LoggerInterface::class);
+		$this->appManager = $this->createMock(IAppManager::class);
 	}
 
 	private function jsResourceLocator() {
@@ -63,7 +67,8 @@ class JSResourceLocatorTest extends \Test\TestCase {
 		);
 		return new JSResourceLocator(
 			$this->logger,
-			$jsCombiner
+			$jsCombiner,
+			$this->appManager,
 		);
 	}
 
@@ -123,6 +128,45 @@ class JSResourceLocatorTest extends \Test\TestCase {
 
 		array_pop(\OC::$APPSROOTS);
 		unlink($new_apps_path_symlink);
+		$this->rrmdir($new_apps_path);
+	}
+
+	public function testFindModuleJSWithFallback() {
+		// First create new apps path, and a symlink to it
+		$apps_dirname = $this->randomString();
+		$new_apps_path = sys_get_temp_dir() . '/' . $apps_dirname;
+		mkdir($new_apps_path);
+
+		// Create an app within that path
+		mkdir($new_apps_path . '/' . 'test-js-app');
+		touch("$new_apps_path/test-js-app/module.mjs");
+		touch("$new_apps_path/test-js-app/both.mjs");
+		touch("$new_apps_path/test-js-app/both.js");
+		touch("$new_apps_path/test-js-app/plain.js");
+
+		// Use the app path
+		\OC::$APPSROOTS[] = [
+			'path' => $new_apps_path,
+			'url' => '/js-apps-test',
+			'writable' => false,
+		];
+
+		$locator = $this->jsResourceLocator();
+		$locator->find(['test-js-app/module', 'test-js-app/both', 'test-js-app/plain']);
+
+		$resources = $locator->getResources();
+		$this->assertCount(3, $resources);
+
+		$expectedRoot = $new_apps_path . '/test-js-app';
+		$expectedWebRoot = \OC::$WEBROOT . '/js-apps-test/test-js-app';
+		$expectedFiles = ['module.mjs', 'both.mjs', 'plain.js'];
+
+		for ($idx = 0; $idx++; $idx < 3) {
+			$this->assertEquals($expectedWebRoot, $resources[$idx][1]);
+			$this->assertEquals($expectedFiles[$idx], $resources[$idx][2]);
+		}
+		
+		array_pop(\OC::$APPSROOTS);
 		$this->rrmdir($new_apps_path);
 	}
 }
