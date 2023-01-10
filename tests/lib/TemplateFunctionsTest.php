@@ -57,6 +57,30 @@ class TemplateFunctionsTest extends \Test\TestCase {
 		print_unescaped($string);
 	}
 
+	public function testEmitScriptTagWithContent() {
+		$this->expectOutputRegex('/<script nonce=".*">\nalert()\n<\/script>/');
+		emit_script_tag('', 'alert()');
+	}
+
+	public function testEmitScriptTagWithSource() {
+		$this->expectOutputRegex('/<script nonce=".*" defer src="some.js"><\/script>/');
+		emit_script_tag('some.js');
+	}
+
+	public function testEmitScriptTagWithModuleSource() {
+		$this->expectOutputRegex('/<script nonce=".*" defer src="some.mjs" type="module"><\/script>/');
+		emit_script_tag('some.mjs', '', 'module');
+	}
+
+	public function testEmitScriptLoadingTags() {
+		// Test mjs js and inline content
+		$this->expectOutputRegex('/<script.+src="some.mjs".+type="module".*>.+<script.+src="other.js".+>.+<script[^>]*>.+inline.+<\/script>/');
+		emit_script_loading_tags([
+			'jsfiles' => ['/some.mjs', '/other.js'],
+			'inline_ocjs' => '// inline'
+		]);
+	}
+
 	// ---------------------------------------------------------------------------
 	// Test relative_modified_date with dates only
 	// ---------------------------------------------------------------------------
