@@ -15,12 +15,12 @@ use Sabre\VObject\Property\ICalendar\DateTime;
 class CalendarObject implements ICalendarObject, IACL {
 	private VCalendar $vobject;
 	private AppCalendar $calendar;
-	private ICalendar $backend;
+	private ICalendar|ICreateFromString $backend;
 
-	public function __construct(AppCalendar $calendar, ICalendar $backend, array $sourceItem) {
+	public function __construct(AppCalendar $calendar, ICalendar $backend, VCalendar $vobject) {
 		$this->backend = $backend;
 		$this->calendar = $calendar;
-		$this->vobject = new VCalendar($sourceItem);
+		$this->vobject = $vobject;
 	}
 
 	public function getOwner() {
@@ -59,9 +59,7 @@ class CalendarObject implements ICalendarObject, IACL {
 
 	public function put($data): void {
 		if ($this->calendar->getPermissions() & Constants::PERMISSION_UPDATE) {
-			/** @var ICreateFromString */
-			$backend = &$this->backend;
-			$backend->createFromString($this->getName(), $data);
+			$this->backend->createFromString($this->getName(), $data);
 		} else {
 			throw new Forbidden('This calendar-object is read-only');
 		}
@@ -85,14 +83,16 @@ class CalendarObject implements ICalendarObject, IACL {
 
 	public function delete(): void {
 		if ($this->calendar->getPermissions() & Constants::PERMISSION_DELETE) {
-			/** @var \Sabre\VObject\Component */
-			$vcomponent = $this->vobject->getBaseComponent();
-			$vcomponent->STATUS = 'CANCELLED';
-			$vcomponent->SEQUENCE = isset($vcomponent->SEQUENCE) ? ((int)$vcomponent->SEQUENCE) + 1 : 1;
-			if ($vcomponent->name == 'VEVENT') $vcomponent->METHOD = 'CANCEL';
-			/** @var ICreateFromString */
-			$backend = &$this->backend;
-			$backend->createFromString((string)$vcomponent->UID . '.ics', $vcomponent->serialize());
+			/** @var \Sabre\VObject\Component[] */
+			$components = $this->vobject->getBaseComponents();
+			foreach($components as $key => $component) {
+				$components[$key]->STATUS = 'CANCELLED';
+				$components[$key]->SEQUENCE = isset($component->SEQUENCE) ? ((int)$component->SEQUENCE) + 1 : 1;
+				if ($component->name === 'VEVENT') {
+					$components[$key]->METHOD = 'CANCEL';
+				}
+			}
+			$this->backend->createFromString($this->getName(), (new VCalendar($components))->serialize());
 		} else {
 			throw new Forbidden('This calendar-object is read-only');
 		}
@@ -105,8 +105,8 @@ class CalendarObject implements ICalendarObject, IACL {
 		if ($base === null) {
 			throw new NotFound('Invalid node');
 		}
-		if (isset($base['X-FILENAME'])) {
-			return (string)$base['X-FILENAME'];
+		if (isset($base->{'X-FILENAME'})) {
+			return (string)$base->{'X-FILENAME'};
 		}
 		return (string)$base->UID . '.ics';
 	}

@@ -13,6 +13,7 @@ use Sabre\CalDAV\Xml\Property\SupportedCalendarComponentSet;
 use Sabre\DAV\Exception\Forbidden;
 use Sabre\DAV\Exception\NotFound;
 use Sabre\DAV\PropPatch;
+use Sabre\VObject\Component\VCalendar;
 use Sabre\VObject\Reader;
 
 class AppCalendar extends ExternalCalendar {
@@ -142,15 +143,15 @@ class AppCalendar extends ExternalCalendar {
 
 	public function getChild($name) {
 		// Try to get calendar by filename
-		$children = $this->calendar->search($name, ['X-FILENAME'], [], 1);
+		$children = $this->calendar->search($name, ['X-FILENAME']);
 		if (count($children) === 0) {
 			// If nothing found try to get by UID from filename
 			$pos = strrpos($name, '.ics');
-			$children = $this->calendar->search(substr($name, 0, $pos ?: null), ['UID'], [], 1);
+			$children = $this->calendar->search(substr($name, 0, $pos ?: null), ['UID']);
 		}
 
 		if (count($children) > 0) {
-			return new CalendarObject($this, $this->calendar, $children[0]);
+			return new CalendarObject($this, $this->calendar, new VCalendar($children));
 		}
 
 		throw new NotFound('Node not found');
@@ -160,11 +161,20 @@ class AppCalendar extends ExternalCalendar {
 	 * @return ICalendarObject[]
 	 */
 	public function getChildren(): array {
-		$children = array_map(function ($calendar) {
-			return new CalendarObject($this, $this->calendar, $calendar);
-		}, $this->calendar->search(''));
+		$objects = $this->calendar->search('');
+		// We need to group by UID (actually by filename but we do not have that information)
+		$result = [];
+		foreach($objects as $object) {
+			$uid = (string)$object['UID'] ?: uniqid();
+			if (!isset($result[$uid])) {
+				$result[$uid] = [];
+			}
+			$result[$uid][] = $object;
+		}
 
-		return $children;
+		return array_map(function(array $children) {
+			return new CalendarObject($this, $this->calendar, new VCalendar($children));
+		}, $result);
 	}
 
 	public function propPatch(PropPatch $propPatch): void {
