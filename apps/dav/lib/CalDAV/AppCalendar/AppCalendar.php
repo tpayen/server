@@ -141,8 +141,13 @@ class AppCalendar extends ExternalCalendar {
 	}
 
 	public function getChild($name) {
-		$pos = strrpos($name, '.ics');
-		$children = $this->calendar->search(substr($name, 0, $pos === false ? null : $pos), ['UID'], [], 1);
+		// Try to get calendar by filename
+		$children = $this->calendar->search($name, ['X-FILENAME'], [], 1);
+		if (count($children) === 0) {
+			// If nothing found try to get by UID from filename
+			$pos = strrpos($name, '.ics');
+			$children = $this->calendar->search(substr($name, 0, $pos ?: null), ['UID'], [], 1);
+		}
 
 		if (count($children) > 0) {
 			return new CalendarObject($this, $this->calendar, $children[0]);

@@ -105,6 +105,9 @@ class CalendarObject implements ICalendarObject, IACL {
 		if ($base === null) {
 			throw new NotFound('Invalid node');
 		}
+		if (isset($base['X-FILENAME'])) {
+			return (string)$base['X-FILENAME'];
+		}
 		return (string)$base->UID . '.ics';
 	}
 
