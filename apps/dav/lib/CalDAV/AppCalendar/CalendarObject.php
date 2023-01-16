@@ -58,7 +58,10 @@ class CalendarObject implements ICalendarObject, IACL {
 	}
 
 	public function put($data): void {
-		if ($this->calendar->getPermissions() & Constants::PERMISSION_UPDATE) {
+		if ($this->backend instanceof ICreateFromString && $this->calendar->getPermissions() & Constants::PERMISSION_UPDATE) {
+			if (is_resource($data)) {
+				$data = stream_get_contents($data) ?: '';
+			}
 			$this->backend->createFromString($this->getName(), $data);
 		} else {
 			throw new Forbidden('This calendar-object is read-only');
@@ -82,10 +85,10 @@ class CalendarObject implements ICalendarObject, IACL {
 	}
 
 	public function delete(): void {
-		if ($this->calendar->getPermissions() & Constants::PERMISSION_DELETE) {
+		if ($this->backend instanceof ICreateFromString && $this->calendar->getPermissions() & Constants::PERMISSION_DELETE) {
 			/** @var \Sabre\VObject\Component[] */
 			$components = $this->vobject->getBaseComponents();
-			foreach($components as $key => $component) {
+			foreach ($components as $key => $component) {
 				$components[$key]->STATUS = 'CANCELLED';
 				$components[$key]->SEQUENCE = isset($component->SEQUENCE) ? ((int)$component->SEQUENCE) + 1 : 1;
 				if ($component->name === 'VEVENT') {

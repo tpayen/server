@@ -32,7 +32,9 @@ class AppCalendar extends ExternalCalendar {
 	 */
 	public function getPermissions(): int {
 		// Make sure to only promote write support if the backend implement the correct interface
-		if ($this->calendar instanceof ICreateFromString) return $this->calendar->getPermissions();
+		if ($this->calendar instanceof ICreateFromString) {
+			return $this->calendar->getPermissions();
+		}
 		return Constants::PERMISSION_READ;
 	}
 
@@ -164,7 +166,7 @@ class AppCalendar extends ExternalCalendar {
 		$objects = $this->calendar->search('');
 		// We need to group by UID (actually by filename but we do not have that information)
 		$result = [];
-		foreach($objects as $object) {
+		foreach ($objects as $object) {
 			$uid = (string)$object['UID'] ?: uniqid();
 			if (!isset($result[$uid])) {
 				$result[$uid] = [];
@@ -172,7 +174,7 @@ class AppCalendar extends ExternalCalendar {
 			$result[$uid][] = $object;
 		}
 
-		return array_map(function(array $children) {
+		return array_map(function (array $children) {
 			return new CalendarObject($this, $this->calendar, new VCalendar($children));
 		}, $result);
 	}

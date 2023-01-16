@@ -22,19 +22,20 @@ use OCA\DAV\CalDAV\AppCalendar\AppCalendar;
 use OCP\Calendar\ICalendar;
 use OCP\Calendar\ICreateFromString;
 use OCP\Constants;
+use PHPUnit\Framework\MockObject\MockObject;
 use Test\TestCase;
 
 class AppCalendarTest extends TestCase {
-	private AppCalendar $appCalendar;
-	private AppCalendar $writeableAppCalendar;
+	private AppCalendar|MockObject $appCalendar;
+	private AppCalendar|MockObject $writeableAppCalendar;
 
 	private $principal = 'principals/users/foo';
 
 	protected function setUp(): void {
 		parent::setUp();
 
-		$calendar = $this->getMock(ICalendar::class);
-		$writeableCalendar = $this->getMock(ICreateFromString::class);
+		$calendar = $this->getMockBuilder(ICalendar::class)->getMock();
+		$writeableCalendar = $this->getMockBuilder(ICreateFromString::class)->getMock();
 		$writeableCalendar->method('getPermissions')
 			->will($this->returnArgument(Constants::PERMISSION_READ | Constants::PERMISSION_CREATE));
 		$this->appCalendar = $this->createMock(AppCalendar::class, ['dav-wrapper', $calendar, $this->principal]);
