@@ -27,11 +27,11 @@ use OCP\IURLGenerator;
 use OCP\IUser;
 use OCP\IUserManager;
 use OCP\Share\IShare;
-use OCP\Share\IShareDisplayTemplateProvider;
+use OCP\Share\IPublicShareTemplateProvider;
 use OCP\Template;
 use OCP\Util;
 
-class DefaultShareDisplayTemplateProvider implements IShareDisplayTemplateProvider {
+class DefaultPublicShareTemplateProvider implements IPublicShareTemplateProvider {
 	private IUserManager $userManager;
 	private IAccountManager $accountManager;
 	private IPreview $previewManager;

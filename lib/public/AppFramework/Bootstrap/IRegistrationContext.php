@@ -327,4 +327,14 @@ interface IRegistrationContext {
 	 * @since 25.0.0
 	 */
 	public function registerSensitiveMethods(string $class, array $methods): void;
+
+	/**
+	 * Register an implementation of IPublicShareTemplateProvider.
+	 *
+	 * @param string $class
+	 * @psalm-param class-string<\OCP\AppFramework\Http\TemplateResponse\IPublicShareTemplateProvider> $class
+	 * @return void
+	 * @since 26.0.0
+	 */
+	public function registerPublicShareTemplateProvider(string $class): void;
 }

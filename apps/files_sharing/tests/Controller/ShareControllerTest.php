@@ -69,8 +69,8 @@ use OCP\Activity\IManager;
 use OCP\Files\IRootFolder;
 use OCP\Defaults;
 use OC\Share20\Manager;
-use OCA\Files_Sharing\DefaultShareDisplayTemplateProvider;
-use OCP\Share\IShareDisplayTemplateFactory;
+use OCA\Files_Sharing\DefaultPublicShareTemplateProvider;
+use OCP\Share\IPublicShareTemplateFactory;
 
 /**
  * @group DB
@@ -112,8 +112,8 @@ class ShareControllerTest extends \Test\TestCase {
 	private $secureRandom;
 	/** @var Defaults|MockObject */
 	private $defaults;
-	/** @var IShareDisplayTemplateFactory|MockObject */
-	private $shareDisplayTemplateFactory;
+	/** @var IPublicShareTemplateFactory|MockObject */
+	private $publicShareTemplateFactory;
 
 	protected function setUp(): void {
 		parent::setUp();
@@ -135,12 +135,12 @@ class ShareControllerTest extends \Test\TestCase {
 		$this->l10n = $this->createMock(IL10N::class);
 		$this->secureRandom = $this->createMock(ISecureRandom::class);
 		$this->defaults = $this->createMock(Defaults::class);
-		$this->shareDisplayTemplateFactory = $this->createMock(IShareDisplayTemplateFactory::class);
-		$this->shareDisplayTemplateFactory
+		$this->publicShareTemplateFactory = $this->createMock(IPublicShareTemplateFactory::class);
+		$this->publicShareTemplateFactory
 			->expects($this->any())
 			->method('getTemplateProvider')
 			->willReturn(
-				new DefaultShareDisplayTemplateProvider(
+				new DefaultPublicShareTemplateProvider(
 					$this->userManager,
 					$this->accountManager,
 					$this->previewManager,
@@ -172,7 +172,7 @@ class ShareControllerTest extends \Test\TestCase {
 			$this->l10n,
 			$this->secureRandom,
 			$this->defaults,
-			$this->shareDisplayTemplateFactory,
+			$this->publicShareTemplateFactory,
 		);
 
 

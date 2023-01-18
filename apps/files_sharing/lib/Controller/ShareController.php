@@ -77,7 +77,7 @@ use OCP\Share;
 use OCP\Share\Exceptions\ShareNotFound;
 use OCP\Share\IManager as ShareManager;
 use OCP\Share\IShare;
-use OCP\Share\IShareDisplayTemplateFactory;
+use OCP\Share\IPublicShareTemplateFactory;
 use OCP\Template;
 
 /**
@@ -100,7 +100,7 @@ class ShareController extends AuthPublicShareController {
 	protected ShareManager $shareManager;
 	protected ISecureRandom $secureRandom;
 	protected ?Share\IShare $share = null;
-	private IShareDisplayTemplateFactory $shareDisplayTemplateFactory;
+	private IPublicShareTemplateFactory $publicShareTemplateFactory;
 
 	public function __construct(
 		string $appName,
@@ -120,7 +120,7 @@ class ShareController extends AuthPublicShareController {
 		IL10N $l10n,
 		ISecureRandom $secureRandom,
 		Defaults $defaults,
-		IShareDisplayTemplateFactory $shareDisplayTemplateFactory
+		IPublicShareTemplateFactory $publicShareTemplateFactory
 	) {
 		parent::__construct($appName, $request, $session, $urlGenerator);
 
@@ -137,7 +137,7 @@ class ShareController extends AuthPublicShareController {
 		$this->secureRandom = $secureRandom;
 		$this->defaults = $defaults;
 		$this->shareManager = $shareManager;
-		$this->shareDisplayTemplateFactory = $shareDisplayTemplateFactory;
+		$this->publicShareTemplateFactory = $publicShareTemplateFactory;
 	}
 
 	public const SHARE_ACCESS = 'access';
@@ -374,7 +374,7 @@ class ShareController extends AuthPublicShareController {
 		$shareNode = $share->getNode();
 
 		try {
-			$templateProvider = $this->shareDisplayTemplateFactory->getTemplateProvider($share);
+			$templateProvider = $this->publicShareTemplateFactory->getProvider($share);
 			$response = $templateProvider->renderPage($share, $this->getToken(), $path);
 		} catch (NotFoundException $e) {
 			$this->emitAccessShareHook($share, 404, 'Share not found');
