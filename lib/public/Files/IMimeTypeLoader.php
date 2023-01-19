@@ -36,7 +36,7 @@ interface IMimeTypeLoader {
 	 * @return string|null
 	 * @since 8.2.0
 	 */
-	public function getMimetypeById($id);
+	public function getMimetypeById(int $id): ?string;
 
 	/**
 	 * Get a mimetype ID, adding the mimetype to the DB if it does not exist
@@ -45,7 +45,7 @@ interface IMimeTypeLoader {
 	 * @return int
 	 * @since 8.2.0
 	 */
-	public function getId($mimetype);
+	public function getId(string $mimetype): int;
 
 	/**
 	 * Test if a mimetype exists in the database
@@ -54,12 +54,12 @@ interface IMimeTypeLoader {
 	 * @return bool
 	 * @since 8.2.0
 	 */
-	public function exists($mimetype);
+	public function exists(string $mimetype): bool;
 
 	/**
 	 * Clear all loaded mimetypes, allow for re-loading
 	 *
 	 * @since 8.2.0
 	 */
-	public function reset();
+	public function reset(): void;
 }
