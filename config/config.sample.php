@@ -457,14 +457,17 @@ $CONFIG = [
 'mail_smtptimeout' => 10,
 
 /**
- * This depends on ``mail_smtpmode``. Specify when you are using ``ssl`` for SSL/TLS or
- * ``tls`` for STARTTLS, or leave empty for no encryption.
+ * This depends on ``mail_smtpmode``. Specify ``ssl`` when you are using SSL/TLS. Any other value will be ignored.
+ *
+ * If the server advertises STARTTLS capabilities, they might be used, but they cannot be enforced by
+ * this config option.
  *
  * Defaults to ``''`` (empty string)
  */
 'mail_smtpsecure' => '',
 
 /**
+ *
  * This depends on ``mail_smtpmode``. Change this to ``true`` if your mail
  * server requires authentication.
  *
@@ -473,12 +476,16 @@ $CONFIG = [
 'mail_smtpauth' => false,
 
 /**
+ * @deprecated 26.0.0
+ *
+ * Only LOGIN is available
+ *
  * This depends on ``mail_smtpmode``. If SMTP authentication is required, choose
  * the authentication type as ``LOGIN`` or ``PLAIN``.
  *
  * Defaults to ``LOGIN``
  */
-'mail_smtpauthtype' => 'LOGIN',
+// 'mail_smtpauthtype' => 'LOGIN',
 
 /**
  * This depends on ``mail_smtpauth``. Specify the username for authenticating to
@@ -669,16 +676,16 @@ $CONFIG = [
  * and a maximum time for trash bin retention.
  *
  * Minimum time is the number of days a file will be kept, after which it
- * _may be_ deleted. A file may be deleted after the minimum number of days 
- * is expired if space is needed. The file will not be deleted if space is 
- * not needed. 
+ * _may be_ deleted. A file may be deleted after the minimum number of days
+ * is expired if space is needed. The file will not be deleted if space is
+ * not needed.
  *
  * Whether "space is needed" depends on whether a user quota is defined or not:
  *
- *  * If no user quota is defined, the available space on the Nextcloud data 
+ *  * If no user quota is defined, the available space on the Nextcloud data
  *    partition sets the limit for the trashbin
  *    (issues: see https://github.com/nextcloud/server/issues/28451).
- *  * If a user quota is defined, 50% of the user's remaining quota space sets 
+ *  * If a user quota is defined, 50% of the user's remaining quota space sets
  *    the limit for the trashbin.
  *
  * Maximum time is the number of days at which it is _guaranteed

@@ -57,6 +57,8 @@ use Symfony\Component\Mailer\Transport\SendmailTransport;
 use Symfony\Component\Mailer\Transport\Smtp\EsmtpTransport;
 use Symfony\Component\Mailer\Transport\Smtp\Stream\SocketStream;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Exception\InvalidArgumentException;
+use Symfony\Component\Mime\Exception\RfcComplianceException;
 
 /**
  * Class Mailer provides some basic functions to create a mail message that can be used in combination with
@@ -168,10 +170,10 @@ class Mailer implements IMailer {
 	 * if no-one has been passed.
 	 *
 	 * @param IMessage|Message $message Message to send
-	 * @return string[] Array with failed recipients. Be aware that this depends on the used mail backend and
-	 * therefore should be considered
-	 * @throws \Exception In case it was not possible to send the message. (for example if an invalid mail address
-	 * has been supplied.)
+	 * @return []
+	 * @throws \Exception
+	 * @throws RfcComplianceException|InvalidArgumentException In case any of the to/from/replyTo/cc/bcc email addresses weren't valid
+	 * @throws TransportExceptionInterface In case sending wasn't possible. Will output additional debug info if 'mail_smtpdebug' => 'true' is set in config.php
 	 */
 	public function send(IMessage $message): array {
 		$debugMode = $this->config->getSystemValue('mail_smtpdebug', false);
@@ -183,6 +185,14 @@ class Mailer implements IMailer {
 		$mailer = $this->getInstance();
 
 		$this->dispatcher->dispatchTyped(new BeforeMessageSent($message));
+
+		try {
+			$message->setRecipients();
+		} catch (InvalidArgumentException|RfcComplianceException $e) {
+			$logMessage = sprintf('Could not send mail to "%s" with subject "%s" as validation for address failed', print_r($message->getTo(), true), $message->getSubject());
+			$this->logger->debug($logMessage, ['app' => 'core', 'exception' => $e]);
+			throw $e;
+		}
 
 		try {
 			$mailer->send($message->getSymfonyEmail());
@@ -203,7 +213,8 @@ class Mailer implements IMailer {
 	}
 
 	/**
-	 * Checks if an e-mail address is valid
+	 * @deprecated 26.0.0 Implicit validation is done in \OC\Mail\Message::setRecipients
+	 *                    via \Symfony\Component\Mime\Address::__construct
 	 *
 	 * @param string $email Email address to be validated
 	 * @return bool True if the mail address is valid, false otherwise
@@ -216,25 +227,7 @@ class Mailer implements IMailer {
 		$validator = new EmailValidator();
 		$validation = new RFCValidation();
 
-		return $validator->isValid($this->convertEmail($email), $validation);
-	}
-
-	/**
-	 * SwiftMailer does currently not work with IDN domains, this function therefore converts the domains
-	 *
-	 * FIXME: Remove this once SwiftMailer supports IDN
-	 *
-	 * @param string $email
-	 * @return string Converted mail address if `idn_to_ascii` exists
-	 */
-	protected function convertEmail(string $email): string {
-		if (!function_exists('idn_to_ascii') || !defined('INTL_IDNA_VARIANT_UTS46') || strpos($email, '@') === false) {
-			return $email;
-		}
-
-		[$name, $domain] = explode('@', $email, 2);
-		$domain = idn_to_ascii($domain, 0, INTL_IDNA_VARIANT_UTS46);
-		return $name.'@'.$domain;
+		return $validator->isValid($email, $validation);
 	}
 
 	protected function getInstance(): MailerInterface {
@@ -260,13 +253,19 @@ class Mailer implements IMailer {
 	/**
 	 * Returns the SMTP transport
 	 *
+	 * Only supports ssl/tls
+	 * starttls is not enforcable with Symfony Mailer but might be available
+	 * via the automatic config (Symfony Mailer internal)
+	 *
 	 * @return EsmtpTransport
 	 */
 	protected function getSmtpInstance(): EsmtpTransport {
+		// either null or true - if nothing is passed, let the symfony mailer figure out the configuration by itself
+		$mailSmtpsecure = ($this->config->getSystemValue('mail_smtpsecure', null) === 'ssl') ? true : null;
 		$transport = new EsmtpTransport(
 			$this->config->getSystemValue('mail_smtphost', '127.0.0.1'),
-			$this->config->getSystemValue('mail_smtpport', 25),
-			null,
+			(int)$this->config->getSystemValue('mail_smtpport', 25),
+			$mailSmtpsecure,
 			null,
 			$this->logger
 		);
@@ -274,6 +273,7 @@ class Mailer implements IMailer {
 		$stream = $transport->getStream();
 		/** @psalm-suppress InternalMethod */
 		$stream->setTimeout($this->config->getSystemValue('mail_smtptimeout', 10));
+
 		if ($this->config->getSystemValue('mail_smtpauth', false)) {
 			$transport->setUsername($this->config->getSystemValue('mail_smtpname', ''));
 			$transport->setPassword($this->config->getSystemValue('mail_smtppassword', ''));

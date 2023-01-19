@@ -96,7 +96,8 @@ interface IMailer {
 	public function send(IMessage $message): array;
 
 	/**
-	 * Checks if an e-mail address is valid
+	 * @deprecated 26.0.0 Implicit validation is done in \OC\Mail\Message::setRecipients
+	 *                    via \Symfony\Component\Mime\Address::__construct
 	 *
 	 * @param string $email Email address to be validated
 	 * @return bool True if the mail address is valid, false otherwise

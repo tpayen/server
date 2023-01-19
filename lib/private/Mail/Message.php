@@ -34,7 +34,10 @@ namespace OC\Mail;
 use OCP\Mail\IAttachment;
 use OCP\Mail\IEMailTemplate;
 use OCP\Mail\IMessage;
+use Symfony\Component\Mime\Address;
 use Symfony\Component\Mime\Email;
+use Symfony\Component\Mime\Exception\InvalidArgumentException;
+use Symfony\Component\Mime\Exception\RfcComplianceException;
 
 /**
  * Class Message provides a wrapper around Symfony\Component\Mime\Email (Used to be around SwiftMail)
@@ -45,9 +48,20 @@ class Message implements IMessage {
 	private Email $symfonyEmail;
 	private bool $plainTextOnly;
 
+	private array $to;
+	private array $from;
+	private array $replyTo;
+	private array $cc;
+	private array $bcc;
+
 	public function __construct(Email $symfonyEmail, bool $plainTextOnly) {
 		$this->symfonyEmail = $symfonyEmail;
 		$this->plainTextOnly = $plainTextOnly;
+		$this->to = [];
+		$this->from = [];
+		$this->replyTo = [];
+		$this->cc = [];
+		$this->bcc = [];
 	}
 
 	/**
@@ -61,28 +75,20 @@ class Message implements IMessage {
 	}
 
 	/**
-	 * SwiftMailer does currently not work with IDN domains, this function therefore converts the domains
-	 * FIXME: Remove this once SwiftMailer supports IDN
+	 * Converts the [['displayName' => 'email'], ['displayName2' => 'email2']] arrays to valid Adresses
 	 *
-	 * @param array $addresses Array of mail addresses, key will get converted
-	 * @return array Converted addresses if `idn_to_ascii` exists
+	 * @param array $addresses Array of mail addresses
+	 * @return Address[]
+	 * @throws RfcComplianceException|InvalidArgumentException
 	 */
 	protected function convertAddresses(array $addresses): array {
-		if (!function_exists('idn_to_ascii') || !defined('INTL_IDNA_VARIANT_UTS46')) {
-			return $addresses;
-		}
-
 		$convertedAddresses = [];
 
 		foreach ($addresses as $email => $readableName) {
-			if (!is_numeric($email)) {
-				[$name, $domain] = explode('@', $email, 2);
-				$domain = idn_to_ascii($domain, 0, INTL_IDNA_VARIANT_UTS46);
-				$convertedAddresses[$name.'@'.$domain] = $readableName;
+			if (is_int($email)) {
+				$convertedAddresses[] = new Address($readableName);
 			} else {
-				[$name, $domain] = explode('@', $readableName, 2);
-				$domain = idn_to_ascii($domain, 0, INTL_IDNA_VARIANT_UTS46);
-				$convertedAddresses[$email] = $name.'@'.$domain;
+				$convertedAddresses[] = new Address($email, $readableName);
 			}
 		}
 
@@ -98,9 +104,7 @@ class Message implements IMessage {
 	 * @return $this
 	 */
 	public function setFrom(array $addresses): IMessage {
-		$addresses = $this->convertAddresses($addresses);
-
-		$this->symfonyEmail->from(...$addresses);
+		$this->from = $addresses;
 		return $this;
 	}
 
@@ -108,7 +112,7 @@ class Message implements IMessage {
 	 * Get the from address of this message.
 	 */
 	public function getFrom(): array {
-		return $this->symfonyEmail->getFrom();
+		return $this->from;
 	}
 
 	/**
@@ -117,9 +121,7 @@ class Message implements IMessage {
 	 * @return $this
 	 */
 	public function setReplyTo(array $addresses): IMessage {
-		$addresses = $this->convertAddresses($addresses);
-
-		$this->symfonyEmail->replyTo(...$addresses);
+		$this->replyTo = $addresses;
 		return $this;
 	}
 
@@ -127,7 +129,7 @@ class Message implements IMessage {
 	 * Returns the Reply-To address of this message
 	 */
 	public function getReplyTo(): array {
-		return $this->symfonyEmail->getReplyTo();
+		return $this->replyTo;
 	}
 
 	/**
@@ -137,9 +139,7 @@ class Message implements IMessage {
 	 * @return $this
 	 */
 	public function setTo(array $recipients): IMessage {
-		$recipients = $this->convertAddresses($recipients);
-
-		$this->symfonyEmail->to(...$recipients);
+		$this->to = $recipients;
 		return $this;
 	}
 
@@ -147,7 +147,7 @@ class Message implements IMessage {
 	 * Get the to address of this message.
 	 */
 	public function getTo(): array {
-		return $this->symfonyEmail->getTo();
+		return $this->to;
 	}
 
 	/**
@@ -157,9 +157,7 @@ class Message implements IMessage {
 	 * @return $this
 	 */
 	public function setCc(array $recipients): IMessage {
-		$recipients = $this->convertAddresses($recipients);
-
-		$this->symfonyEmail->cc(...$recipients);
+		$this->cc = $recipients;
 		return $this;
 	}
 
@@ -167,7 +165,7 @@ class Message implements IMessage {
 	 * Get the cc address of this message.
 	 */
 	public function getCc(): array {
-		return $this->symfonyEmail->getCc();
+		return $this->cc;
 	}
 
 	/**
@@ -177,9 +175,7 @@ class Message implements IMessage {
 	 * @return $this
 	 */
 	public function setBcc(array $recipients): IMessage {
-		$recipients = $this->convertAddresses($recipients);
-
-		$this->symfonyEmail->bcc(...$recipients);
+		$this->bcc = $recipients;
 		return $this;
 	}
 
@@ -187,7 +183,7 @@ class Message implements IMessage {
 	 * Get the Bcc address of this message.
 	 */
 	public function getBcc(): array {
-		return $this->symfonyEmail->getBcc();
+		return $this->bcc;
 	}
 
 	/**
@@ -244,7 +240,7 @@ class Message implements IMessage {
 	}
 
 	/**
-	 * Get the underlying Email intance
+	 * Get the underlying Email instance
 	 */
 	public function getSymfonyEmail(): Email {
 		return $this->symfonyEmail;
@@ -262,6 +258,40 @@ class Message implements IMessage {
 			}
 		}
 		return $this;
+	}
+
+	/**
+	 * Set the recipients on the symphony email
+	 *
+	 * Since
+	 *
+	 * setTo
+	 * setFrom
+	 * setReplyTo
+	 * setCc
+	 * setBcc
+	 *
+	 * could throw a \Symfony\Component\Mime\Exception\RfcComplianceException
+	 * or a \Symfony\Component\Mime\Exception\InvalidArgumentException
+	 * we wrap the calls here. We then have the validation errors all in one place and can
+	 * throw shortly before \OC\Mail\Mailer::send
+	 *
+	 * @return void
+	 * @throws InvalidArgumentException|RfcComplianceException
+	 */
+	public function setRecipients() {
+		$this->symfonyEmail->to(...$this->convertAddresses($this->getTo()));
+		$this->symfonyEmail->from(...$this->convertAddresses($this->getFrom()));
+
+		if (!empty($this->getReplyTo())) {
+			$this->symfonyEmail->replyTo(...$this->convertAddresses($this->getReplyTo()));
+		}
+		if (!empty($this->getCc())) {
+			$this->symfonyEmail->cc(...$this->convertAddresses($this->getCc()));
+		}
+		if (!empty($this->getBcc())) {
+			$this->symfonyEmail->bcc(...$this->convertAddresses($this->getBcc()));
+		}
 	}
 
 	/**
