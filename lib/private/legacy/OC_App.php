@@ -485,7 +485,7 @@ class OC_App {
 		if ($sanitizedAppId !== $appId) {
 			return false;
 		}
-		static $app_dir = [];
+		$app_dir = [];
 
 		if (isset($app_dir[$appId])) {
 			return $app_dir[$appId];
