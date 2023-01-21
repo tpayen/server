@@ -70,6 +70,9 @@ p($theme->getTitle());
 				<div id="unified-search"></div>
 				<div id="notifications"></div>
 				<div id="contactsmenu"></div>
+
+				<div id="settings-vue"></div>
+
 				<div id="settings">
 					<div id="expand" tabindex="0" role="button" class="menutoggle"
 						aria-label="<?php p($l->t('Open settings menu'));?>"
@@ -109,6 +112,7 @@ p($theme->getTitle());
 					</ul>
 					</nav>
 				</div>
+
 			</div>
 		</header>
 

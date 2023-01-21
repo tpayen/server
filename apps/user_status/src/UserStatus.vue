@@ -234,11 +234,6 @@ export default {
 		align-items: flex-start !important;
 		color: var(--color-main-text) !important;
 
-		&:focus-visible {
-			padding: 6px 8px 1px 8px !important;
-			margin: 2px !important;
-		}
-
 		&:not([href]) {
 			height: var(--header-menu-item-height) !important;
 			color: var(--color-text-maxcontrast) !important;

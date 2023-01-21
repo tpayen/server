@@ -132,6 +132,8 @@ class TemplateLayout extends \OC_Template {
 			$settingsNavigation = $this->navigationManager->getAll('settings');
 			$this->assign('settingsnavigation', $settingsNavigation);
 
+			$this->initialState->provideInitialState('core', 'settingsNavEntries', $settingsNavigation);
+
 			foreach ($navigation as $entry) {
 				if ($entry['active']) {
 					$this->assign('application', $entry['name']);
@@ -269,6 +271,7 @@ class TemplateLayout extends \OC_Template {
 		$this->assign('cssfiles', []);
 		$this->assign('printcssfiles', []);
 		$this->assign('versionHash', self::$versionHash);
+		$this->initialState->provideInitialState('core', 'versionHash', self::$versionHash);
 		foreach ($cssFiles as $info) {
 			$web = $info[1];
 			$file = $info[2];

@@ -2,6 +2,7 @@
  * @copyright 2019 Christoph Wurst <christoph@winzerhof-wurst.at>
  *
  * @author Christoph Wurst <christoph@winzerhof-wurst.at>
+ * @author Christopher Ng <chrng8@gmail.com>
  *
  * @license AGPL-3.0-or-later
  *
@@ -24,7 +25,21 @@ import OC from '../OC'
 
 import $ from 'jquery'
 
+import Vue from 'vue'
+
+import UserMenu from '../views/UserMenu.vue'
+
 export const setUp = () => {
+	const mountPoint = document.getElementById('settings-vue')
+	if (mountPoint) {
+		// eslint-disable-next-line no-new
+		new Vue({
+			el: mountPoint,
+			render: h => h(UserMenu),
+		})
+	}
+
+	/*
 	const $menu = $('#header #settings')
 	// Using page terminoogy as below
 	const $excludedPageClasses = [
@@ -57,4 +72,5 @@ export const setUp = () => {
 			OC.hideMenus(() => false)
 		}
 	})
+	*/
 }

@@ -24,10 +24,11 @@
 
 import Vue from 'vue'
 import { getRequestToken } from '@nextcloud/auth'
-import UserStatus from './UserStatus'
-import store from './store'
-import NcAvatar from '@nextcloud/vue/dist/Components/NcAvatar'
-import { loadState } from '@nextcloud/initial-state'
+import { subscribe } from '@nextcloud/event-bus'
+
+import UserStatus from './UserStatus.vue'
+
+import store from './store/index.js'
 
 // eslint-disable-next-line camelcase
 __webpack_nonce__ = btoa(getRequestToken())
@@ -35,31 +36,19 @@ __webpack_nonce__ = btoa(getRequestToken())
 Vue.prototype.t = t
 Vue.prototype.$t = t
 
-const avatarDiv = document.getElementById('avatardiv-menu')
-const userStatusData = loadState('user_status', 'status')
-const propsData = {
-	preloadedUserStatus: {
-		message: userStatusData.message,
-		icon: userStatusData.icon,
-		status: userStatusData.status,
-	},
-	user: avatarDiv.dataset.user,
-	displayName: avatarDiv.dataset.displayname,
-	disableMenu: true,
-	disableTooltip: true,
+const mountMenu = () => {
+	const mountPoint = document.querySelector('li[data-id="user_status-menuitem"]')
+	if (mountPoint) {
+		// eslint-disable-next-line no-new
+		new Vue({
+			el: mountPoint,
+			render: h => h(UserStatus),
+			store,
+		})
+	}
 }
 
-const NcAvatarInMenu = Vue.extend(NcAvatar)
-new NcAvatarInMenu({ propsData }).$mount('#avatardiv-menu')
-
-// Register settings menu entry
-export default new Vue({
-	el: 'li[data-id="user_status-menuitem"]',
-	// eslint-disable-next-line vue/match-component-file-name
-	name: 'UserStatusRoot',
-	render: h => h(UserStatus),
-	store,
-})
+subscribe('core:user-menu:mounted', mountMenu)
 
 // Register dashboard status
 document.addEventListener('DOMContentLoaded', function() {
